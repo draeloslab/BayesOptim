@@ -1,0 +1,38 @@
+General:
+  seed: 42
+  init_T: 4
+  max_tests: 10
+  algorithm: 'sim' # options: sim, improv, muscle (FUTURE)
+  method: 'online' # options: online, offline
+  data_folder: './data/'
+  save_results: True
+
+Neurons:
+  N: 50 # 100 # number of neurons or number of electrodes (FUTURE)
+  tc_type:  'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
+  constraint: 'linear' #'peak_distance' #'linear'
+  SimPop: 'gaussian' # options: gaussian, pseudo (only used during simulation runs)
+
+Stimuli:
+  d: 2
+  x1_range: 16
+  x2_range: 10
+  x3_range: 7
+
+Optimizer:
+  gamma: 0.2 #1
+  var: 0.5
+  nu: 1e-1 #1e-1
+  eta: 1e-2
+  optim_1:
+    kernel: ['rbf', 'rbf']  
+    stopping_crit: 0.05 #0.02, 0.08, 0.37 #0.01, 0.1
+  # optim_2: 
+  #   kernel: ['matern', 'rbf'] 
+  #   stopping_crit: 0.02 
+  #   matern_nu: 1.5
+  # optim_3:
+  #   kernel: ['matern', 'rbf_periodic'] 
+  #   stopping_crit: 0.02 #0.01, 0.1
+  #   matern_nu: 0.5
+  #   periodic_p: 2
