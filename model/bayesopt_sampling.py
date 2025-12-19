@@ -58,7 +58,7 @@ def bayesopt_sampling(c, print_flag=False):
     rerun_flag = False          # If True, there are neurons we need to return to and try again
     torun_list = []             # The list that stores the neurons'optim(index) to re-run 
     optim_n = list(c.optimizers.keys())
-    if c.algorithm != "parallel":
+    if c.params['General']['algorithm'] != "parallel":
         assert len(optim_n) == 1, "Not running BayesOpt in parallel, only accept one optimizer; \
             comment out optimizers not being used"
         optim_n = optim_n[0]
@@ -100,10 +100,6 @@ def bayesopt_sampling(c, print_flag=False):
             print('Number ', n_optim, '; peak of this neuron: ', c.SimPop.peaks[n_optim])
 
         optim = optimizer_class(c, optimizer_kernel)
-        # if matern_yes:
-        #     optim = optimizer_class(c.gamma, c.var, c.nu, c.eta, c.x_star, optimizer_kernel, c.matern_nu)
-        # else:
-        #     optim = optimizer_class(c.gamma, c.var, c.nu, c.eta, c.x_star, optimizer_kernel)
         
 
         # with types; uncomment if confident about the double-peak detection    
@@ -114,14 +110,13 @@ def bayesopt_sampling(c, print_flag=False):
         # optim = Optimizer_linear(c.gamma, c.var, c.nu, c.eta, c.x_star, c.kernels)
         
         
-        if c.x_index < c.max_tests:
-            optim.initialize_GP(c.X0[:c.x_index], c.y0[:c.x_index, n_optim])
-            x_list = [c.X0[:c.x_index].copy()]
-            y_list = [c.y0[:c.x_index, n_optim].copy()]
-        else:
-            optim.initialize_GP(c.X0, c.y0[:, n_optim])
-            x_list = [c.X0.copy()]
-            y_list = [c.y0.copy()]
+        X_train = np.array(c.X0)
+        y_train = np.array(c.y0)[:, n_optim]
+        optim.initialize_GP(X_train, y_train)
+        initial_X = X_train.copy()
+        initial_y = y_train.copy()
+        selected_X = []
+        selected_y = []
        
         stopping_list = []
         max_list = []
@@ -139,15 +134,12 @@ def bayesopt_sampling(c, print_flag=False):
             _, xt_1 = optim.max_acq()  # change this to multiple peaks? 
             y = c.SimPop.sample(xt_1)
 
-            # if np.where(~c.X0.any(axis=1))[0][1] > c.init_T:
-            #     c.X0[np.where(~c.X0.any(axis=1))[0][1]] = xt_1
-            #     c.y0[np.where(~c.X0.any(axis=1))[0][1]-1:(np.where(~c.X0.any(axis=1))[0][1]-1)+c.init_T] = y[:c.init_T]
-            # else:
-            c.X0[c.x_index % c.max_tests] = xt_1
-            c.y0[c.x_index % c.max_tests] = y
+            c.X0.append(xt_1)
+            c.y0.append(y)
             c.x_index += 1
-            x_list.append(xt_1)
-            y_list.append(y[n_optim])
+
+            selected_X.append(xt_1)
+            selected_y.append(y[n_optim])
             # print(n_optim, xt_1, y[n_optim])
 
             optim.update_GP(xt_1, y[n_optim])
@@ -191,8 +183,10 @@ def bayesopt_sampling(c, print_flag=False):
                 stopping_allN[n_optim].extend(stopping_list)
                 f_all[n_optim].extend(f_list)
                 sigma_all[n_optim].extend(sigma_list)
-                sample_x[n_optim].extend(x_list)
-                sample_y[n_optim].extend(y_list)
+                sample_x[n_optim]['initial'].extend([initial_X])
+                sample_y[n_optim]['initial'].extend([initial_y])
+                sample_x[n_optim]['selected'].extend(selected_X)
+                sample_y[n_optim]['selected'].extend(selected_y)
             except:
                 breakpoint()
         else:
@@ -203,8 +197,14 @@ def bayesopt_sampling(c, print_flag=False):
             stopping_allN[n_optim] = stopping_list
             f_all[n_optim] = f_list
             sigma_all[n_optim] = sigma_list
-            sample_x[n_optim] = x_list
-            sample_y[n_optim] = y_list
+            sample_x[n_optim] = {
+                'initial': [initial_X],
+                'selected': selected_X
+            }
+            sample_y[n_optim] = {
+                'initial': [initial_y],
+                'selected': selected_y
+            }
 
         test_time_neuron[n_optim] = test_time
         # neuron_time[n_optim] = end_neuron - start_neuron    
