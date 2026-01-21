@@ -4,7 +4,6 @@ import numpy as np
 import pandas as pd
 from simulate.sim_neurons import SimNeurons
 from simulate.pseudo_neurons import PseudoNeurons
-from utils.get_inputs import ExperimentalInputs
 
 class Config():
     def __init__(self, file):
@@ -19,6 +18,7 @@ class Config():
         np.random.seed(parameters['General']['seed'])
 
         self.data_folder = parameters['General']['data_folder']
+        self.algorithm = parameters['General']['algorithm']
         self.method = parameters['General']['method']
 
         ## Neurons
