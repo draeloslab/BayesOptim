@@ -58,10 +58,10 @@ def bayesopt_sampling(c, print_flag=False):
     rerun_flag = False          # If True, there are neurons we need to return to and try again
     torun_list = []             # The list that stores the neurons'optim(index) to re-run 
     optim_n = list(c.optimizers.keys())
-    if c.algorithm != "parallel":
-        assert len(optim_n) == 1, "Not running BayesOpt in parallel, only accept one optimizer; \
-            comment out optimizers not being used"
-        optim_n = optim_n[0]
+    # if c.algorithm != "parallel":
+    #     assert len(optim_n) == 1, "Not running BayesOpt in parallel, only accept one optimizer; \
+    #         comment out optimizers not being used"
+    optim_n = optim_n[0]
         # optimizer_class = 'Optimizer'#optimizer_class[0]
     optimizer_kernel = c.optimizers[optim_n]['kernels']
     optimizer_stopping_crit = c.optimizers[optim_n]['stopping_crit']
