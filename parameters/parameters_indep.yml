@@ -5,7 +5,7 @@ General:
   algorithm: 'sim' # options: sim, improv, muscle (FUTURE)
   method: 'online' # options: online, offline
   data_folder: './data/'
-  save_results: True
+  save_results: False
 
 Neurons:
   N: 50 # 100 # number of neurons or number of electrodes (FUTURE)
