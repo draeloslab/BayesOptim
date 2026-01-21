@@ -16,7 +16,7 @@ if len(sys.argv) > 1:
 else:
     parameter_file = input('Enter parameter file: ')
 
-param_file_path = os.path.join('parameters_all', parameter_file)
+param_file_path = os.path.join('parameters', parameter_file)
 with open(param_file_path, 'r') as file:
     parameters = yaml.safe_load(file)
 
