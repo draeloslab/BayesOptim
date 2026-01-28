@@ -1,6 +1,12 @@
-import numpy as np
 import numba as nb
 import scipy.special
+
+# benchmarking
+from line_profiler import profile
+import jax
+import jax.numpy as np
+from jax import jit
+from functools import partial
 
 # @profile
 # @nb.njit(fastmath=True,parallel=True)
@@ -32,7 +38,7 @@ def kernel_rbf_periodic_old(x, x_j, gamma):  #var, gamma
             dist = np.abs(x[i] - x_j[j])  # 1d implementation, for now
             if dist > 10:
                 dist = 10 - dist
-            K_rbf_periodic[i,j] = np.exp(-gamma * ((dist)**2))  # changed gamma[0] to gamma
+            K_rbf_periodic.at[i,j].set(np.exp(-gamma * ((dist)**2)))  # changed gamma[0] to gamma
     
     return K_rbf_periodic
 
@@ -79,8 +85,9 @@ def kernel_matern(x, x_j, gamma, matern_nu):
 
 
 # the main kernel function
+@partial(jax.jit, static_argnames=['c', 'kernels'])
 def kernel(x, x_j, c, kernels):
-    K = np.ones((x.shape[0], x_j.shape[0]), dtype=np.float64) 
+    K = np.ones((x.shape[0], x_j.shape[0])) 
     gamma = np.asarray(c.gamma, dtype=float)
 
     # handle linear dims first so multiple linear dims are fused
