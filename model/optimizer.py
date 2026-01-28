@@ -1,10 +1,17 @@
-import numpy as np
 import scipy.stats as stats
 from sklearn.metrics import mean_squared_error
 from model.kernel import kernel
 
 import logging; logger = logging.getLogger(__name__)
 logger.setLevel(logging.INFO)
+
+# benchmarking
+import numpy
+from line_profiler import profile
+import jax
+import jax.numpy as np
+from jax import jit
+from functools import partial
 
 class Optimizer():
     def __init__(self, c, kernels): # gamma, var, nu, eta, x_star, kernels, matern_nu
@@ -16,7 +23,7 @@ class Optimizer():
 
         self.d = self.x_star.shape[1] # d dimensions
 
-        self.kernels = kernels
+        self.kernels = tuple(kernels) # Needs to be a tuple rather than a list for jax.jit
 
         self.f = None
         self.sigma = None       ## Note: this is actually sigma squared
@@ -126,7 +133,7 @@ class Optimizer():
             logger.info("Selected stimulus exceeds max tests; Choose randomly ---")
             # arange-generate an array range [0--n-1];np.rd.chocie:sample a number from the array
             #this point has been counted with a largest acq funtion >5 times - local maximum?
-        self.test_count[test_pt] += 1
+        self.test_count.at[test_pt].add(1)
         # logger.info("this this test_pt count (after if) {}".format(self.test_count[test_pt]))
     #    print("test_pt", test_pt)
     #    print("new pt", self.x_star[test_pt])
@@ -169,6 +176,8 @@ class Optimizer():
     def return_par(self):
         return self.sigma,self.f
 #@profile
+
+@partial(jax.jit, static_argnames=['c', 'kernels'])
 def update_GP_ext(X_t, x_t1, A, y, y_t1, k_star, kvv, c, kernels):#update_GP_ext(X_t, x_t1, A, x_star, eta, y, y_t1, k_star, variance, gamma, kvv, kernels, matern_nu):
 
     k_t = kernel(X_t, x_t1, c, kernels)#x_t+1
@@ -238,8 +247,8 @@ def calc_offline_fit(X, y, c, kernels):
 
         # Compute GP parameters
         A = np.linalg.inv(K_t + c.eta**2 * np.eye(T))     # TO DO - look at pinv 
-        f[neuron] = k_star.T @ A @ y_neuron                    # predicted means
-        sigma[neuron] = c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star    # covariance matrix
+        f.at[neuron].set(k_star.T @ A @ y_neuron)                    # predicted means
+        sigma.at[neuron].set(c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star)    # covariance matrix
         t = T
 
     return f, sigma
@@ -299,10 +308,10 @@ def calc_online_fit(X, y, c, kernels, init_T, end_T):
             EI, PI = optimizer.stopping()
 
             max_idx = np.argmax(optimizer.f)
-            peak_lc[counter] = tuple(list(map(int, c.x_star[max_idx])))
-            f[counter] = optimizer.f
-            sigma[counter] = optimizer.sigma
-            stopping_crits[counter] = [EI, PI]
+            peak_lc.at[counter].set(tuple(list(map(int, c.x_star[max_idx]))))
+            f.at[counter].set(optimizer.f)
+            sigma.at[counter].set(optimizer.sigma)
+            stopping_crits.at[counter].set([EI, PI])
             
             counter += 1
         print(counter)
