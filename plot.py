@@ -144,7 +144,7 @@ def plot_mse(mse_final, optimizer_name):
     plt.show()
 
 
-def plot_tuningcurves(N, exs, SimPop):
+def plot_tuningcurves(N, exs, SimPop, config):
     ''' 
     Plot tuning curves as 2D contour plots for each dimension pair
 
@@ -159,29 +159,68 @@ def plot_tuningcurves(N, exs, SimPop):
     None 
 
     '''
-
     for dim1 in range(len(exs)):
         for dim2 in range(dim1+1, len(exs)):
             plt.figure(figsize=(8, 6))
-            
             for n in range(N):
-                mean = SimPop.peaks[n][[dim1, dim2]]
-                cov = SimPop.covs[n][[dim1, dim2]][:, [dim1, dim2]]
+                if config.params['Neurons']['SimPop'] == "auditory": 
+                    mean_exc = SimPop.mean1[n, [dim1, dim2]]     
+                    cov_exc = SimPop.covs1[n][[dim1, dim2]][:, [dim1, dim2]] 
+                    mean_inh = SimPop.mean2[n, [dim1, dim2]]      
+                    cov_inh = SimPop.covs2[n][[dim1, dim2]][:, [dim1, dim2]] 
+                    x_range = exs[dim1]
+                    y_range = exs[dim2]
+                    X, Y = np.meshgrid(x_range, y_range, indexing='ij')
+                    pos = np.dstack((X, Y))
 
-                x_range = exs[dim1]
-                y_range = exs[dim2]
-                X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
+                    # Excitation
+                    Z_exc = stats.multivariate_normal(mean=mean_exc, cov=cov_exc).pdf(pos)
+                    Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
+                    Z_dog = Z_exc - Z_inh
 
-                pos = np.dstack((X, Y))
-                Z = stats.multivariate_normal(mean=mean, cov=cov).pdf(pos)
+                    fig, axs = plt.subplots(1, 3, figsize=(12, 5))
+                    
+                    # Excitation
+                    c1 = axs[0].contourf(X, Y, Z_exc, levels=20, cmap='Blues', alpha=0.7)
+                    axs[0].set_xlabel(f'Dimension {dim1 + 1}')
+                    axs[0].set_ylabel(f'Dimension {dim2 + 1}')
+                    axs[0].set_title(f'Excitatory PDF (Neuron {n})')
+                    fig.colorbar(c1, ax=axs[0])
+                    
+                    # Inhibition
+                    c2 = axs[1].contourf(X, Y, Z_inh, levels=20, cmap='Oranges', alpha=0.7)
+                    axs[1].set_xlabel(f'Dimension {dim1 + 1}')
+                    axs[1].set_ylabel(f'Dimension {dim2 + 1}')
+                    axs[1].set_title(f'Inhibitory PDF (Neuron {n})')
+                    fig.colorbar(c2, ax=axs[1])
 
-                plt.contourf(X, Y, Z, cmap='viridis', levels=20)
+                    c3 = axs[2].contourf(X, Y, Z_dog, levels=20, cmap='coolwarm', alpha=0.7)
+                    axs[2].set_xlabel(f'Dimension {dim1 + 1}')
+                    axs[2].set_ylabel(f'Dimension {dim2 + 1}')
+                    axs[2].set_title(f'DoG (Neuron {n})')
+                    fig.colorbar(c3, ax=axs[2])
+                    
+                    fig.suptitle(f'Neuron {n+1}: Dimension {dim1 + 1} vs. {dim2 + 1}')
+                    plt.tight_layout()
+                    plt.show()
+                    
+                else:
+                    mean = SimPop.peaks[n][[dim1, dim2]]
+                    cov = SimPop.covs[n][[dim1, dim2]][:, [dim1, dim2]]
 
-            plt.xlabel(f'Dimension {dim1 + 1}')
-            plt.ylabel(f'Dimension {dim2 + 1}')
-            plt.title(f'Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
-            plt.colorbar()
-            plt.show()
+                    x_range = exs[dim1]
+                    y_range = exs[dim2]
+                    X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
+
+                    pos = np.dstack((X, Y))
+                    Z = stats.multivariate_normal(mean=mean, cov=cov).pdf(pos)
+
+                    plt.contourf(X, Y, Z, cmap='viridis', levels=20)
+                    plt.xlabel(f'Dimension {dim1 + 1}')
+                    plt.ylabel(f'Dimension {dim2 + 1}')
+                    plt.title(f'Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
+                    plt.colorbar()
+                    plt.show()
 
 def plot_tuningcurves_eval(N, exs, SimPop, candidates, method):
     ''' 

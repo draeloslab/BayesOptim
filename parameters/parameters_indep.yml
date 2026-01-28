@@ -8,16 +8,19 @@ General:
   save_results: False
 
 Neurons:
-  N: 50 # 100 # number of neurons or number of electrodes (FUTURE)
-  tc_type:  'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
-  constraint: 'linear' #'peak_distance' #'linear'
-  SimPop: 'gaussian' # options: gaussian, pseudo (only used during simulation runs)
+  N: 10 # 100 # number of neurons or number of electrodes (FUTURE)
+  tc_type: 'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
+  constraint: None #'peak_distance' #'linear'
+  SimPop: 'auditory' # options: gaussian, pseudo, auditory (only used during simulation runs)
 
 Stimuli:
   d: 2
-  x1_range: 16
-  x2_range: 10
-  x3_range: 7
+  x1_range: 10 #1.1 # center frequency
+  x2_range: 10 #1.1 # level (dB)
+  #x3_range: 6 #spectral bandwidth
+  # x4_range: 8 #modulation frequency
+  # x5_range: 15 #spatial location
+
 
 Optimizer:
   gamma: 0.2 #1
@@ -25,8 +28,8 @@ Optimizer:
   nu: 1e-1 #1e-1
   eta: 1e-2
   optim_1:
-    kernel: ['rbf', 'rbf']  
-    stopping_crit: 0.05 #0.02, 0.08, 0.37 #0.01, 0.1
+    kernel: ['rbf', 'rbf'] #rbf'] #'rbf', 'rbf']  
+    stopping_crit: .1  # 0.05 #0.02, 0.08, 0.37 #0.01, 0.1
   # optim_2: 
   #   kernel: ['matern', 'rbf'] 
   #   stopping_crit: 0.02 

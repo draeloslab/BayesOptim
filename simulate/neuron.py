@@ -37,6 +37,7 @@ class Neuron:
         x (tuple)        : sample stimulus
         z                : simulated response given sample stimulus
         normalize (bool) : if True, normalize response by the maximum response
+        
 
         '''
         
@@ -74,7 +75,9 @@ class Neuron:
         dists = np.abs(peaks - self.peaks[n])           
         mse = mean_squared_error(peaks, self.peaks[n])
         count = np.count_nonzero(dists < self.tol)      # count dist within tolerance
-
+        print(f"true peak: {self.peaks[n]}")
+        print(f"predicted peak: {peaks}")
+        print(f"mse: {mse}")
         return dists, count, mse
 
 

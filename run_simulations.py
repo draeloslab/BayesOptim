@@ -7,7 +7,7 @@ from datetime import datetime
 from model.bayesopt_sampling import bayesopt_sampling 
 from model.random_sampling import random_sampling
 from model.optimizer import calc_offline_fit 
-from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves_eval, plot_acqf, plot_mse
+from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_acqf, plot_mse
 from utils.save_results import save_results
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
@@ -67,12 +67,17 @@ while True:
                 exs = config.exs
                 SimPop = config.SimPop
                 plot_tuningcurves_eval(N, exs, SimPop, candidates=results_dict['loc_list'], method='simulate')
+
                 # plot_stopping(stopping_allN)
                 # plot_acqf(acq_list)
                 break
 
             elif eval_method is None or eval_method == ' ':
                 results_dict = bayesopt_sampling(config, print_flag=True)
+                N = config.N
+                exs = config.exs
+                SimPop = config.SimPop
+                plot_tuningcurves(N, exs, SimPop, config)
 
                 break
 

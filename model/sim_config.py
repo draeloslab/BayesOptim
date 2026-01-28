@@ -4,6 +4,7 @@ import numpy as np
 import pandas as pd
 from simulate.sim_neurons import SimNeurons
 from simulate.pseudo_neurons import PseudoNeurons
+from simulate.Auditory_neurons import Auditory_neurons
 
 class Config():
     def __init__(self, file):
@@ -96,6 +97,15 @@ class Config():
             else:
                 SimPop.gen_tuning_curves(type='indep', constraint='linear')
 
+        if parameters['Neurons']['SimPop'] == 'auditory':
+            SimPop = Auditory_neurons(self.N, self.d, tol = np.array([l[1]-l[0] for l in exs]))
+            SimPop.set_tuning_x(exs)
+
+            # if 'tc_type' in parameters['Neurons'].keys():
+            #     SimPop.gen_tuning_curves(type=parameters['Neurons']['tc_type'], constraint='linear')
+            # else:
+            SimPop.gen_tuning_curves(type='indep', constraint=None)
+
         xs = np.meshgrid(*exs, indexing='ij')
         x_star = np.empty(xs[0].shape + (self.d,))
         for i in range(self.d):
@@ -127,7 +137,10 @@ class Config():
         for i in range(self.init_T):
             SimPop.sample(X0[i])  # Call sample only once
         y0 = np.zeros((self.max_tests, self.N))
-        y0[:self.init_T,:] = np.array(SimPop.resp_z)[:self.init_T,:]
+        print("Shape of SimPop.resp_z:", np.shape(SimPop.resp_z))
+        print("dtype/responses:", SimPop.resp_z[:2])
+        print('Sample output:', type(SimPop.resp_z[-1]), SimPop.resp_z[-1])
         
+        y0[:self.init_T,:] = np.array(SimPop.resp_z)[:self.init_T,:]
         parameters.update({'exs': exs, 'y0': y0, 'x_index': x_index, 'SimPop': SimPop})
         return parameters
