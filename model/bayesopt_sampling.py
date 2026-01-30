@@ -1,6 +1,7 @@
 import time
 import numpy as np
 from model.optimizer import Optimizer  # all of them
+import matplotlib.pyplot as plt
 
 
 # @profile
@@ -210,6 +211,51 @@ def bayesopt_sampling(c, print_flag=False):
         # neuron_time[n_optim] = end_neuron - start_neuron    
     Pr_list.append(cn/ c.N)
     mse_final = [neuron_mse[-1] for neuron_mse in mse_allN]
+    
+    wrong_shape = f_all[0][-1].shape
+    right_shape = f_all[0][-1].shape
+    print(f"wrong neuron: {f_all[4][-1]}, wrong shape: {wrong_shape}")
+    print(f"right neuron: {f_all[0][-1]}, right shape: {right_shape}")
+    # print(f"another right neuron: {f_all[9][-1]}")
+
+    exs = [np.arange(6), np.arange(5)]
+    for dim1 in range(len(exs)):
+        for dim2 in range(dim1+1, len(exs)):
+            x_range = exs[dim1]
+            y_range = exs[dim2]
+            X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
+            #Z_reshaped = Z.reshape(X.shape)#.T
+    
+    right_grid = np.array(f_all[0][-1]).reshape(X.shape)
+    wrong_grid = np.array(f_all[4][-1]).reshape(X.shape)
+
+    # # another_right = np.array(f_all[9][-1]).reshape(5,5)
+    # # another_right_2 = np.array(f_all[5][-1]).reshape(5,5)
+
+    plt.figure()
+    plt.imshow(right_grid, cmap='viridis', origin='lower')
+    plt.title('Right Neuron 0 DoG Response')
+    plt.colorbar()
+    plt.show()
+
+    # # plt.imshow(another_right_2, cmap='viridis', origin='lower')
+    # # plt.title('Neuron 5 DoG Response')
+    # # plt.colorbar()
+    # # plt.show()
+
+    # # plt.figure()
+    # # plt.imshow(another_right, cmap='viridis', origin='lower')
+    # # plt.title('another Right Neuron 9 DoG Response')
+    # # plt.colorbar()
+    # # plt.show()
+
+    plt.figure()
+    plt.imshow(wrong_grid, cmap='viridis', origin='lower')
+    plt.title('Wrong Neuron 4 DoG Response')
+    plt.colorbar()
+    plt.show()
+        
+    #pickle file and reshape with special function and get the last run of neuron 1
 
     results_dict = {
         "Pr_list": Pr_list,
@@ -226,3 +272,4 @@ def bayesopt_sampling(c, print_flag=False):
     }
     
     return results_dict
+ 

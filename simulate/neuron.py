@@ -76,6 +76,7 @@ class Neuron:
         mse = mean_squared_error(peaks, self.peaks[n])
         count = np.count_nonzero(dists < self.tol)      # count dist within tolerance
         print(f"true peak: {self.peaks[n]}")
+        print(f"true min: {self.min[n]}")
         print(f"predicted peak: {peaks}")
         print(f"mse: {mse}")
         return dists, count, mse

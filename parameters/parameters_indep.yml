@@ -15,8 +15,8 @@ Neurons:
 
 Stimuli:
   d: 2
-  x1_range: 10 #1.1 # center frequency
-  x2_range: 10 #1.1 # level (dB)
+  x1_range: 6 #5 #1.1 # center frequency
+  x2_range: 5 #1.1 # level (dB)
   #x3_range: 6 #spectral bandwidth
   # x4_range: 8 #modulation frequency
   # x5_range: 15 #spatial location
@@ -29,7 +29,7 @@ Optimizer:
   eta: 1e-2
   optim_1:
     kernel: ['rbf', 'rbf'] #rbf'] #'rbf', 'rbf']  
-    stopping_crit: .1  # 0.05 #0.02, 0.08, 0.37 #0.01, 0.1
+    stopping_crit: 0 # 0.05 #0.02, 0.08, 0.37 #0.01, 0.1
   # optim_2: 
   #   kernel: ['matern', 'rbf'] 
   #   stopping_crit: 0.02 

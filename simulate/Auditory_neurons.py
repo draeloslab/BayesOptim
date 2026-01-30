@@ -40,8 +40,11 @@ class Auditory_neurons(Neuron):
         self.mean2 = np.zeros((self.N,self.d))  #larger variance
         self.covs2 = np.zeros((self.N,self.d,self.d))
 
-        my_mean1 = [5, 7]
-        my_mean2 = [2, 4]
+        my_mean1 = [2.5, 2.5]
+        my_mean2 = [.5, 1]
+        # my_mean1 = [2.5, 2.5]
+        # my_mean2 = [2.4, 2.6]
+        
 
         for i in range(self.d):
             self.mean1[:, i] = my_mean1[i]
@@ -56,15 +59,14 @@ class Auditory_neurons(Neuron):
 
         for i in range(self.d):
                 # covs[:,i,i] = (self.count[i]*1e8) * self.scale[i]**2 #np.random.random(size=self.N) * self.scale[i]
-                #  self.covs1[:,i,i] = np.random.random(size=self.N) * self.scale[i]**2 / np.sqrt(self.count[i]) # diagonal elements of the covariance matrices
-                #  self.covs2[:,i,i] = np.random.random(size=self.N) * self.scale[i]**2 *1.01/ np.sqrt(self.count[i])  #larger covariance, inhibitory
-                desired_std = 2  # in stimulus units (Hz, dB, etc.)
-                self.covs1[:,i,i] = desired_std **2  # e.g., 100
-                self.covs2[:,i,i] = (desired_std*1.5)** 2 
+                # self.covs1[:,i,i] = np.random.random(size=self.N) * self.scale[i] / np.sqrt(self.count[i]) # diagonal elements of the covariance matrices
+                # self.covs2[:,i,i] = np.random.random(size=self.N) * self.scale[i]**2/ np.sqrt(self.count[i])  #larger covariance, inhibitory
+                desired_std = 1 # in stimulus units (Hz, dB, etc.)
+                self.covs1[:,i,i] = desired_std**2  # e.g., 100
+                self.covs2[:,i,i] = (desired_std*1.5)**2
+        
         print(self.covs1)
         print(self.covs2)
-
-  
         for n in range(self.N):
             self.rv1.append(stats.multivariate_normal(mean=self.mean1[n], cov=self.covs1[n]))
             self.rv2.append(stats.multivariate_normal(mean=self.mean2[n], cov=self.covs2[n]))
@@ -79,9 +81,12 @@ class Auditory_neurons(Neuron):
 
         # Find true DoG peaks using self.x_star
         self.peaks = np.zeros((self.N, self.d))
+        self.min = np.zeros((self.N, self.d))
         for n in range(self.N):
             responses = [self.rv1[n].pdf(xi) - self.rv2[n].pdf(xi) for xi in self.x_star]
             peak_idx = np.argmax(responses)
+            min_idx = np.argmin(responses)
+            self.min[n] = self.x_star[min_idx]
             self.peaks[n] = self.x_star[peak_idx]
 
     def sample(self, x, normalize = False):

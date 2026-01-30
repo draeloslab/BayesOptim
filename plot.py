@@ -144,7 +144,7 @@ def plot_mse(mse_final, optimizer_name):
     plt.show()
 
 
-def plot_tuningcurves(N, exs, SimPop, config):
+def plot_tuningcurves(N, SimPop, config):
     ''' 
     Plot tuning curves as 2D contour plots for each dimension pair
 
@@ -159,24 +159,25 @@ def plot_tuningcurves(N, exs, SimPop, config):
     None 
 
     '''
-    for dim1 in range(len(exs)):
-        for dim2 in range(dim1+1, len(exs)):
+    for dim1 in range(len(config.exs)):
+        for dim2 in range(dim1+1, len(config.exs)):
             plt.figure(figsize=(8, 6))
             for n in range(N):
                 if config.params['Neurons']['SimPop'] == "auditory": 
                     mean_exc = SimPop.mean1[n, [dim1, dim2]]     
                     cov_exc = SimPop.covs1[n][[dim1, dim2]][:, [dim1, dim2]] 
                     mean_inh = SimPop.mean2[n, [dim1, dim2]]      
-                    cov_inh = SimPop.covs2[n][[dim1, dim2]][:, [dim1, dim2]] 
-                    x_range = exs[dim1]
-                    y_range = exs[dim2]
+                    cov_inh = SimPop.covs2[n][[dim1, dim2]][:, [dim1, dim2]]
+                    x_range = config.exs[dim1]
+                    y_range = config.exs[dim2]
                     X, Y = np.meshgrid(x_range, y_range, indexing='ij')
                     pos = np.dstack((X, Y))
 
-                    # Excitation
                     Z_exc = stats.multivariate_normal(mean=mean_exc, cov=cov_exc).pdf(pos)
                     Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
                     Z_dog = Z_exc - Z_inh
+
+                    print(f"Z_dog: {Z_dog}")
 
                     fig, axs = plt.subplots(1, 3, figsize=(12, 5))
                     
@@ -194,13 +195,22 @@ def plot_tuningcurves(N, exs, SimPop, config):
                     axs[1].set_title(f'Inhibitory PDF (Neuron {n})')
                     fig.colorbar(c2, ax=axs[1])
 
-                    c3 = axs[2].contourf(X, Y, Z_dog, levels=20, cmap='coolwarm', alpha=0.7)
+                    c3 = axs[2].imshow(
+                        Z_dog,
+                        extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5],
+                        origin='lower',
+                        cmap='viridis',
+                        alpha= 1,
+                        aspect='auto'
+                    )
                     axs[2].set_xlabel(f'Dimension {dim1 + 1}')
                     axs[2].set_ylabel(f'Dimension {dim2 + 1}')
                     axs[2].set_title(f'DoG (Neuron {n})')
                     fig.colorbar(c3, ax=axs[2])
                     
                     fig.suptitle(f'Neuron {n+1}: Dimension {dim1 + 1} vs. {dim2 + 1}')
+                    plt.xticks(x_range)
+                    plt.yticks(y_range)
                     plt.tight_layout()
                     plt.show()
                     
@@ -208,8 +218,8 @@ def plot_tuningcurves(N, exs, SimPop, config):
                     mean = SimPop.peaks[n][[dim1, dim2]]
                     cov = SimPop.covs[n][[dim1, dim2]][:, [dim1, dim2]]
 
-                    x_range = exs[dim1]
-                    y_range = exs[dim2]
+                    x_range = config.exs[dim1]
+                    y_range = config.exs[dim2]
                     X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
 
                     pos = np.dstack((X, Y))
@@ -368,7 +378,7 @@ def plot_tuningcurves_sampled(neuron_num, config, f_peak = None):
                 x_range = config.exs[dim1]
                 y_range = config.exs[dim2]
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
-                Z_reshaped = Z.reshape(X.shape).T
+                Z_reshaped = Z.reshape(X.shape)# .T
                 plt.imshow(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
                             origin='lower', cmap='viridis', aspect='auto')
                 plt.plot(config.SimPop.peaks[neuron_num][0], config.SimPop.peaks[neuron_num][1], 'ro',
@@ -407,14 +417,20 @@ def sampling_for_plots(neuron_num, config):
             X, Y= np.meshgrid(config.exs[dim1], config.exs[dim2], indexing = 'ij') 
             pos = np.dstack((X, Y))  # 16, 10, 2
             Z = np.zeros((len(config.exs[dim2])*len(config.exs[dim1])))
+            sampled_points = []
             for i in range(len(config.exs[dim1])):  # 16
                 for j in range(len(config.exs[dim2])):  # 10
                     # putting the set seed here kind of lose the sampling power??
                     # np.random.seed(config.params['General']['seed'])
                     # print(pos[i,j])
                     resp = config.SimPop.sample(pos[i,j])[neuron_num]
+                    stim_point = pos[i, j]
+                    if neuron_num == 1:
+                        sampled_points.append(stim_point)
                     # print(resp)
                     Z[i*len(config.exs[dim2])+ j] = resp # just sampling
+            print(f"sampled neuron 1: {sampled_points}")
+            print(f"Z_gridsample: {Z}")
             # # sample for nD array; discarded
             # Z = np.zeros((len(exs[dim2]), len(exs[dim1])))
             # for i in range(Z.shape[dim1]):  # 10

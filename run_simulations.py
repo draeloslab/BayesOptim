@@ -7,7 +7,9 @@ from datetime import datetime
 from model.bayesopt_sampling import bayesopt_sampling 
 from model.random_sampling import random_sampling
 from model.optimizer import calc_offline_fit 
-from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_acqf, plot_mse
+from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse
+from simulate.ground_truth_plot import plot_tuningcurves_Penny
+from simulate.sampling_plots import plot_tuningcurves_sampled_Penny #sampling_for_plots_Penny
 from utils.save_results import save_results
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
@@ -75,10 +77,13 @@ while True:
             elif eval_method is None or eval_method == ' ':
                 results_dict = bayesopt_sampling(config, print_flag=True)
                 N = config.N
-                exs = config.exs
                 SimPop = config.SimPop
-                plot_tuningcurves(N, exs, SimPop, config)
-
+                # plot_tuningcurves(1, SimPop, config)
+                # plot_tuningcurves_sampled(1, config, f_peak = None)
+                plot_tuningcurves_Penny(N, SimPop, config)
+                #sampling_for_plots_Penny(1, config)
+                plot_tuningcurves_sampled_Penny(0, config, f_peak = None)
+                plot_tuningcurves_sampled_Penny(4, config, f_peak = None)
                 break
 
             else:
