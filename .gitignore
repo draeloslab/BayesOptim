@@ -170,9 +170,10 @@ output/
 # some non-important notebooks
 notebooks/
 
-
-
 # test python files
 model/test.py
 
 .DS_Store
+
+# benchmarking
+profile_output*
