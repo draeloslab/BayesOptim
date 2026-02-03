@@ -11,6 +11,9 @@ from model.kernel import kernel_matern
 from model.kernel import kernel
 from model.sim_config import Config
 
+# Run this on the command line from the BayesOptim directory using:
+# LINE_PROFILE=1 python -m benchmarking.benchmarking
+
 start = time.time()
 
 parameter_file = "parameters_indep.yml"
