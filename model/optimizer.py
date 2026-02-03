@@ -39,7 +39,7 @@ class Optimizer():
         # self.types = types # double_peak, linear_uvn, indep etc.
 
 
-    #@profile
+    # @profile
     def initialize_GP(self, X, y):
         ##Create initial parameters
         ## X is a matrix (T,d) of initial T measurements we have results for
@@ -174,9 +174,9 @@ class Optimizer():
     #@profile
     def return_par(self):
         return self.sigma,self.f
-#@profile
 
 @partial(jax.jit, static_argnames=['c', 'kernels'])
+# @profile # needs to go after partial or it doesn't work
 def update_GP_ext(X_t, x_t1, A, y, y_t1, k_star, kvv, c, kernels):#update_GP_ext(X_t, x_t1, A, x_star, eta, y, y_t1, k_star, variance, gamma, kvv, kernels, matern_nu):
 
     k_t = kernel(X_t, x_t1, c, kernels)#x_t+1

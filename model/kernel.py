@@ -86,6 +86,7 @@ def kernel_matern(x, x_j, gamma, matern_nu):
 
 # the main kernel function
 @partial(jax.jit, static_argnames=['c', 'kernels'])
+# @profile # needs to go after partial or it doesn't work
 def kernel(x, x_j, c, kernels):
     K = jnp.ones((x.shape[0], x_j.shape[0])) 
     gamma = jnp.asarray(c.gamma, dtype=float)
