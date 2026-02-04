@@ -1,9 +1,15 @@
 
 import os
 import yaml
+import pickle
 from datetime import datetime as dt 
 
 def save_results(param_file_path, results_dict):
+
+    ## first check if there is an output folder, if not create one
+    if not os.path.exists('output'):
+        os.makedirs('output')
+        print("------- Created 'output' directory -------")
 
     ## Creating date-specific output folder
     output_base_name = f'output_{dt.now().strftime("%m")}_{dt.now().strftime("%d")}'
@@ -18,8 +24,8 @@ def save_results(param_file_path, results_dict):
         dst.write(src.read())
         print(f'Copied {param_file_path} to {output_folder}')
 
-    ## Save results_dict as a YAML file 
-    results_file = os.path.join(output_folder, 'results.yaml')
-    with open(results_file, 'w') as f:
-        yaml.dump(results_dict, f, default_flow_style=False)
-    print(f'Saved results dictionary as YAML file in {output_folder}')
+    ## Save results_dict as a pickle file
+    results_file = os.path.join(output_folder, 'results.pkl')
+    with open(results_file, 'wb') as f:
+        pickle.dump(results_dict, f)
+    print(f'Saved results dictionary as pickle file in {output_folder}')
