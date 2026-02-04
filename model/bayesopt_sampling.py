@@ -64,7 +64,7 @@ def bayesopt_sampling(c, print_flag=False):
     optim_n = optim_n[0]
         # optimizer_class = 'Optimizer'#optimizer_class[0]
     optimizer_kernel = c.optimizers[optim_n]['kernels']
-    optimizer_stopping_crit = c.optimizers[optim_n]['stopping_crit']
+    optimizer_stopping_crit = float(c.optimizers[optim_n]['stopping_crit'])
     optimizer_class = Optimizer #globals().get(optimizer_class) # got rid of the dynamic instantiation
     print("You're using these kernels:", optimizer_kernel, ". The stopping crit is:", optimizer_stopping_crit)
     print("Gamma: {}; Nu: {}; var: {}; eta: {}; matern nu (if any) {}".format(c.gamma, c.nu, c.var, c.eta, c.matern_nu))
