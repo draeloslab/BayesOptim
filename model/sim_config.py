@@ -18,7 +18,6 @@ class Config():
         np.random.seed(parameters['General']['seed'])
 
         self.data_folder = parameters['General']['data_folder']
-        self.algorithm = parameters['General']['algorithm']
         self.method = parameters['General']['method']
 
         ## Neurons
@@ -119,8 +118,8 @@ class Config():
             X0[:self.init_T, i] = rr
         print('Initial test points: ', X0[:self.init_T])
 
-        self.X0 = X0.copy()
-        self.X0_original = X0.copy()
+        # we're using all previous sampled X's
+        self.X0 = [X0[i].copy() for i in range(self.init_T)]
         x_index = self.init_T
 
         ## Generate initial sample response data
@@ -128,6 +127,6 @@ class Config():
             SimPop.sample(X0[i])  # Call sample only once
         y0 = np.zeros((self.max_tests, self.N))
         y0[:self.init_T,:] = np.array(SimPop.resp_z)[:self.init_T,:]
-        
-        parameters.update({'exs': exs, 'y0': y0, 'x_index': x_index, 'SimPop': SimPop})
+        self.y0 = [y0[i].copy() for i in range(self.init_T)] # similarly, we're using all y's
+        parameters.update({'exs': exs, 'y0': self.y0, 'x_index': x_index, 'SimPop': SimPop})
         return parameters
