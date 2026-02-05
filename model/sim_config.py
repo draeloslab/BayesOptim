@@ -18,7 +18,6 @@ class Config():
         np.random.seed(parameters['General']['seed'])
 
         self.data_folder = parameters['General']['data_folder']
-        self.algorithm = parameters['General']['algorithm']
         self.method = parameters['General']['method']
 
         ## Neurons
