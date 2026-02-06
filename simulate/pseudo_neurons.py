@@ -61,7 +61,12 @@ class PseudoNeurons(Neuron):
 
         return x_sample
 
-    def sample(self, stim_sample):
+    def _resolve_x(self, stim_sample, **kwargs):
+        stim_idx = self.choose_stim_idx(stim_sample)
+
+        return self.on_times[stim_idx], self.off_times[stim_idx]
+    
+    def _sample_impl(self, x_sample):
         ''' 
         Samples a z response an x sample stimulus
         
@@ -74,11 +79,11 @@ class PseudoNeurons(Neuron):
         ----------
         z                : area under the neural trace curve = response given a sample stimulus
         '''
-        x_sample = self.choose_stim_idx(stim_sample)
-        stim_idx = self.on_times.index(x_sample[0])
+        on, off = x_sample
+        # stim_idx = self.on_times.index(x_sample[0])
 
-        frame = [self.on_times[stim_idx], self.off_times[stim_idx]]
-        responses = self.c_array[:, frame[0]-self.pre_stim_window:frame[1]+self.stim_extension]
+        # frame = [self.on_times[stim_idx], self.off_times[stim_idx]]
+        responses = self.c_array[:, on-self.pre_stim_window:off+self.stim_extension]
         z = np.sum(responses, axis=1)   # auc for all neurons for this stim_idx
 
         self.record_response(x_sample, z)
