@@ -60,6 +60,7 @@ def random_sampling(c, print_flag=False):
             random_indices = np.random.choice(nrows, size=1, replace=False)
             pl= xs_copy[random_indices,] # the loc of peak
             pl=pl.ravel()
+            #print(f"Random sampling pl {pl}")
             # for double-peaks only
             if c.params['Neurons']['tc_type'] == "double_peaks":
                 dists = np.abs(pl - SimPop.peaks[random_peak_number][n_optim])
@@ -67,6 +68,7 @@ def random_sampling(c, print_flag=False):
             else:  # for unique peaks
                 dists = np.abs(pl - SimPop.peaks[n_optim])
                 mse= mean_squared_error(pl,  SimPop.peaks[n_optim])
+                # print(f"Random sampling: mse {mse}")
 
             # # for double-peaks only
             # dists = np.abs(pl - SimPop.peaks[random_peak_number][n_optim])
@@ -79,7 +81,8 @@ def random_sampling(c, print_flag=False):
                 flag = True
 
 
-            if mse < 2 and flag and not myflag: #8e-11:  #0.2
+            #if mse < .05 and flag and not myflag: #8e-11:  #0.2
+            if mse < .05 and flag and not myflag: #8e-11:  #0.2
                 myflag = True
                 rscn+=1
                 break
@@ -88,5 +91,5 @@ def random_sampling(c, print_flag=False):
                 print('-------------------- used all ', max_tests,' tests and did not finish; got close? ', np.around(dists, 2))
 
     rsPr_list.append((rscn)/N)
-
+    print(f"Random Sampling rsPr list {rsPr_list}")
     return rsPr_list

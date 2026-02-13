@@ -40,32 +40,33 @@ def plot_tuningcurves_Penny(N, SimPop, config):
                     Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
                     Z_dog = Z_exc - Z_inh
 
-                    print(f"Z_dog neuron {n}: {Z_dog}; Z_dog shape: {Z_dog.shape}")
+                    # print(f"Z_dog neuron {n}: {Z_dog}; Z_dog shape: {Z_dog.shape}")
 
-                    plt.figure()
-                    plt.contourf(Z_dog, cmap='viridis', 
-                               origin='lower') #,  
-                            #    extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5])
-                    plt.title(f'Ground Truth Neuron {n} DoG Response')
-                    plt.colorbar()
-                    plt.xticks(y_range)
-                    plt.yticks(x_range)
-                    plt.show()
+                    # plt.figure()
+                    # plt.contourf(Z_dog, cmap='viridis', 
+                    #            origin='lower') #,  
+                    #         #    extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5])
+                    # plt.title(f'Ground Truth Neuron {n} DoG Response')
+                    # plt.colorbar()
+                    # plt.xticks(y_range)
+                    # plt.yticks(x_range)
+                    # plt.show()
+    return Z_dog
                     
-                else:
-                    mean = SimPop.peaks[n][[dim1, dim2]]
-                    cov = SimPop.covs[n][[dim1, dim2]][:, [dim1, dim2]]
+                # else:
+                #     mean = SimPop.peaks[n][[dim1, dim2]]
+                #     cov = SimPop.covs[n][[dim1, dim2]][:, [dim1, dim2]]
 
-                    x_range = config.exs[dim1]
-                    y_range = config.exs[dim2]
-                    X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
+                #     x_range = config.exs[dim1]
+                #     y_range = config.exs[dim2]
+                #     X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
 
-                    pos = np.dstack((X, Y))
-                    Z = stats.multivariate_normal(mean=mean, cov=cov).pdf(pos)
+                #     pos = np.dstack((X, Y))
+                #     Z = stats.multivariate_normal(mean=mean, cov=cov).pdf(pos)
 
-                    plt.contourf(X, Y, Z, cmap='viridis', levels=20)
-                    plt.xlabel(f'Dimension {dim1 + 1}')
-                    plt.ylabel(f'Dimension {dim2 + 1}')
-                    plt.title(f'Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
-                    plt.colorbar()
-                    plt.show()
+                #     plt.contourf(X, Y, Z, cmap='viridis', levels=20)
+                #     plt.xlabel(f'Dimension {dim1 + 1}')
+                #     plt.ylabel(f'Dimension {dim2 + 1}')
+                #     plt.title(f'Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
+                #     plt.colorbar()
+                #     plt.show()

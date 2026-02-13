@@ -9,8 +9,10 @@ from model.random_sampling import random_sampling
 from model.optimizer import calc_offline_fit 
 from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse
 from simulate.ground_truth_plot import plot_tuningcurves_Penny
-from simulate.sampling_plots import plot_tuningcurves_sampled_Penny #sampling_for_plots_Penny
+from simulate.sampling_plots import plot_tuningcurves_sampled_Penny, sampling_for_plots_Penny
 from utils.save_results import save_results
+import matplotlib.pyplot as plt
+from model.stop_functions_plots import stop_functions_plots
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
 if len(sys.argv) > 1:
@@ -78,12 +80,12 @@ while True:
                 results_dict = bayesopt_sampling(config, print_flag=True)
                 N = config.N
                 SimPop = config.SimPop
+                print(f"SimPop max {SimPop.max}")
                 # plot_tuningcurves(1, SimPop, config)
                 # plot_tuningcurves_sampled(1, config, f_peak = None)
-                plot_tuningcurves_Penny(N, SimPop, config)
-                #sampling_for_plots_Penny(1, config)
-                plot_tuningcurves_sampled_Penny(0, config, f_peak = None)
-                plot_tuningcurves_sampled_Penny(4, config, f_peak = None)
+                #plot_tuningcurves_Penny(1, SimPop, config)
+
+                #plot_tuningcurves_sampled_Penny(1, config)
                 break
 
             else:
@@ -134,21 +136,35 @@ while True:
         config.algorithm = None
 
 rsPr_list = random_sampling(config, print_flag=True)
+gsPr_list, Z = sampling_for_plots_Penny(0, config)
 
 if len(optimizers) > 1 and config.method == "parallel":  # not sure about this
     for i in range(len(optimizers)):
-        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, optimizer_name=optimizers[i])
+        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[i])
+        #plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, optimizer_name=optimizers[i])
         plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=mse_final_all[i], loc_list=loc_list_all[i], SimPop=config.SimPop)
         plot_mse(mse_final=mse_final_all[i])
 else:  # running single kernel
-    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, optimizer_name=optimizers[0])
+    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[0])
+    #plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, optimizer_name=optimizers[0])
     plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=results_dict['mse_final'], loc_list=results_dict['loc_list'], SimPop=config.SimPop, optimizer_name=optimizers[0])
     plot_mse(mse_final=results_dict['mse_final'], optimizer_name=optimizers[0])
     plot_run_time(test_time_neuron=results_dict['test_time_neuron'], average=True)
 
 if parameters['General']['save_results'] == True:
     save_results(param_file_path=param_file_path, results_dict=results_dict)
-    
+    stop_functions_plots(section_key='stopping_allN')
+# f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
+
+# plt.figure()
+# plt.imshow(f.reshape(6, 5), cmap='viridis', origin='lower')
+# plt.title('Offline GP Fit')
+# plt.colorbar(label='GP Mean')
+# plt.show()
+
+# print(f"offline {f.reshape(6,5)}")
+# print(f"online {right_grid}")
+# np.allclose(f.reshape(6,5), right_grid, atol = 1e-3)
 
     
 

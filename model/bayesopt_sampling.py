@@ -122,6 +122,7 @@ def bayesopt_sampling(c, print_flag=False):
         stopping_list = []
         max_list = []
         mse_list = []
+        count_list = []
         f_list = []
         sigma_list = []
         test_time = []
@@ -142,29 +143,39 @@ def bayesopt_sampling(c, print_flag=False):
             selected_X.append(xt_1)
             selected_y.append(y[n_optim])
             # print(n_optim, xt_1, y[n_optim])
-
             optim.update_GP(xt_1, y[n_optim])
             pl = optim.x_star[np.argmax(optim.f)]
-            dists, pixels_correct, mse = c.SimPop.verify_sln(pl, n_optim)
+            print(f"pl: {pl}")
+            dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
+            count_list.append(count)
+            #print(f"count list: {count_list}")
+            #dists, pixels_correct, mse = c.SimPop.verify_sln(pl, n_optim)
             # dists, pixels_correct, mse = c.SimPop.verify_sln_double(pl, n_optim)
             EI, PI = optim.stopping()
             mse_list.append(mse)
+            print(f"mse_list: {mse_list}")
             stopping_list.append(optim.stopping())
             max_list.append(pl)
             f_list.append(optim.f)
             sigma_list.append(optim.sigma)
-
-            # if pixels_correct > (c.d-1) and not correct_solution:
+            #if pixels_correct > (c.d-1) and not correct_solution:
             #     correct_solution = True
                 # print("for first if")
 
+            if mse ==0 and not correct_solution:
+                correct_solution = True
+                print("for first if")
+
+            # if mse == 0 and not correct_solution:
+            #     correct_solution = True
+
             # if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # got rid of the correct_solution, more like improv
-            #if optim.stopping() < c.stopping_crit and correct_solution and not done_optimizing:  # the original original one
-            if EI < optimizer_stopping_crit and not done_optimizing:
+            if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # the original original one
+            #if EI < optimizer_stopping_crit and not done_optimizing:
                 done_optimizing = True
                 cn += 1
                 runt_list[n_optim] += nt
-                # print("for second if")
+                print("for second if")
                 break
 
             if cnt == c.max_tests-1:
@@ -214,8 +225,8 @@ def bayesopt_sampling(c, print_flag=False):
     
     wrong_shape = f_all[0][-1].shape
     right_shape = f_all[0][-1].shape
-    print(f"wrong neuron: {f_all[4][-1]}, wrong shape: {wrong_shape}")
-    print(f"right neuron: {f_all[0][-1]}, right shape: {right_shape}")
+    #print(f"wrong neuron: {f_all[4][-1]}, wrong shape: {wrong_shape}")
+    #print(f"right neuron: {f_all[0][-1]}, right shape: {right_shape}")
     # print(f"another right neuron: {f_all[9][-1]}")
 
     exs = [np.arange(6), np.arange(5)]
@@ -226,36 +237,6 @@ def bayesopt_sampling(c, print_flag=False):
             X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
             #Z_reshaped = Z.reshape(X.shape)#.T
     
-    right_grid = np.array(f_all[0][-1]).reshape(X.shape)
-    wrong_grid = np.array(f_all[4][-1]).reshape(X.shape)
-
-    # # another_right = np.array(f_all[9][-1]).reshape(5,5)
-    # # another_right_2 = np.array(f_all[5][-1]).reshape(5,5)
-
-    plt.figure()
-    plt.imshow(right_grid, cmap='viridis', origin='lower')
-    plt.title('Right Neuron 0 DoG Response')
-    plt.colorbar()
-    plt.show()
-
-    # # plt.imshow(another_right_2, cmap='viridis', origin='lower')
-    # # plt.title('Neuron 5 DoG Response')
-    # # plt.colorbar()
-    # # plt.show()
-
-    # # plt.figure()
-    # # plt.imshow(another_right, cmap='viridis', origin='lower')
-    # # plt.title('another Right Neuron 9 DoG Response')
-    # # plt.colorbar()
-    # # plt.show()
-
-    plt.figure()
-    plt.imshow(wrong_grid, cmap='viridis', origin='lower')
-    plt.title('Wrong Neuron 4 DoG Response')
-    plt.colorbar()
-    plt.show()
-        
-    #pickle file and reshape with special function and get the last run of neuron 1
 
     results_dict = {
         "Pr_list": Pr_list,
@@ -271,5 +252,23 @@ def bayesopt_sampling(c, print_flag=False):
         "test_time_neuron": test_time_neuron,
     }
     
+    print(f"BayesOpt Prlist: {results_dict['Pr_list']}")
+    print(f"stopping all length: {len(results_dict['stopping_allN'])}")
+    # for block in results_dict['stopping_allN']:
+    #     print("block:", block)
+    #     for pair in block:
+    #         print("pair:", pair, "type:", type(pair))
+    stopping_vals = results_dict['stopping_allN']
+    #EI_vals = []
+    for n in range(c.N):
+        print(f"stopping vals {stopping_vals[n]}")
+        EI_vals = [x[0] for x in stopping_vals[n]]
+        # print(f"EI vals {EI_vals}")
+        plt.plot(EI_vals, label= f'Neuron {n+1}')
+    plt.xlabel('Test Step')
+    plt.ylabel('Expected Improvement')
+    plt.title(f'EI vs Optimization Step for gamma= {c.gamma}, stop={optimizer_stopping_crit}')
+    plt.legend()
+    plt.show()
     return results_dict
  

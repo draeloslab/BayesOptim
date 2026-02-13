@@ -46,7 +46,7 @@ def plot_prior(self,PCA_components,sample_size,nd,mean,cov,i=0):
     else:
         print("PCA components are over dimensions of the prior distribution!")
 
-def plot_correct_prediction(N, Pr_list, rsPr_list, optimizer_name):
+def plot_correct_prediction(N, Pr_list, rsPr_list, gsPr_list, optimizer_name): #gsPr_list,
     ''' 
     Plots probability of making correct predictions
 
@@ -61,9 +61,13 @@ def plot_correct_prediction(N, Pr_list, rsPr_list, optimizer_name):
     None 
 
     '''
+    print(len(gsPr_list))
+    print(np.arange(0,len(gsPr_list)))
 
     plt.plot(np.arange(0,len(Pr_list)), Pr_list, linestyle='-', color='b',label="Bayes Opt")
     plt.plot(np.arange(0,len(rsPr_list)), rsPr_list, linestyle='-', color='c',label="Random Sampling")
+    plt.plot(np.arange(0,len(gsPr_list)), gsPr_list, linestyle='-', color='r',label="Grid Sampling")
+
     plt.xlabel('# of predictions')
     plt.ylabel('Probability')
     plt.title(f'Probability of making correct predictions - {optimizer_name}')
@@ -415,7 +419,7 @@ def sampling_for_plots(neuron_num, config):
     for dim1 in range(len(config.exs)):
         for dim2 in range(dim1+1, len(config.exs)):
             X, Y= np.meshgrid(config.exs[dim1], config.exs[dim2], indexing = 'ij') 
-            pos = np.dstack((X, Y))  # 16, 10, 2
+            pos = np.dstack((X, Y)) 
             Z = np.zeros((len(config.exs[dim2])*len(config.exs[dim1])))
             sampled_points = []
             for i in range(len(config.exs[dim1])):  # 16

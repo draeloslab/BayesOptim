@@ -20,6 +20,7 @@ class Config():
 
         self.data_folder = parameters['General']['data_folder']
         self.method = parameters['General']['method']
+        self.algorithm = parameters['General']['algorithm']
 
         ## Neurons
         self.N = parameters['Neurons']['N']     # number of neurons

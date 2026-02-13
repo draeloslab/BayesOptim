@@ -94,13 +94,35 @@ class Auditory_neurons(Neuron):
             Compute DoG response for all neurons at stimulus x (array-like, shape [d]).
             Returns shape [N].
             """
-            z = np.zeros(self.N)
+            self.z = np.zeros(self.N)
             for n in range(self.N):
-                z[n] = self.rv1[n].pdf(x) - self.rv2[n].pdf(x)
+                self.z[n] = self.rv1[n].pdf(x) - self.rv2[n].pdf(x)
             
             if normalize:
-                self.record_response(x, z, normalize=True)
+                self.record_response(x, self.z, normalize=True)
             
-            self.record_response(x, z)
-            return z
+            self.record_response(x, self.z)
+            return self.z
+    
+    def verify_sln(self, peaks, n):
+        ''' 
+        Compares the predicted peak location to the true peak location 
+        
+        params:
+        ----------
+        peaks (list)  : predicted peak location (N,d)
+        n (int)       : n-th neuron 
+
+        returns:
+        ----------
+        dists (tuple) : predicted peaks - true peak of the n-th neuron
+        count (int)   : a count of the number of correct predictions for each dimension
+        mse (tuple)   : MSE between predicted peak and true peak of the n-th neuron
+        '''
+        # peaks shape: (N, d)
+        dists = np.abs(peaks - self.peaks[n])           
+        mse = mean_squared_error(peaks, self.peaks[n])
+        count = np.count_nonzero(dists < self.tol)      # count dist within tolerance
+
+        return dists, count, mse
     
