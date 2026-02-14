@@ -44,3 +44,12 @@ python run_simulations.py eval
 ```
 Simply leave the second keyword blank to run normally.
 
+
+### Benchmarking
+In the benchmarking folder, there is a very minimal file called benchmarking.py that is used for timing the program and its functions using offline data. It can be run on the command line in the BayesOptim directory with:
+
+LINE_PROFILE=1 python -m benchmarking.benchmarking
+
+This produces a profile_output.txt file. It shows the time usage of each line for functions that have been decorated using @profile. It can be converted to .csv format with:
+
+python -m benchmarking.read_profile_output.py
