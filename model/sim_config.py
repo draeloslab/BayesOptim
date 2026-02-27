@@ -44,12 +44,12 @@ class Config():
             optimizer_info = parameters['Optimizer'][optim_n]
             # Extract optimizer name and kernels
             self.kernels = optimizer_info['kernel']  # Get the list of kernels
-            stopping_crit = optimizer_info['stopping_crit']
+            self.stopping_crit = optimizer_info['stopping_crit']
             # Check if the number of kernels matches the dimension of the stimuli
             if len(self.kernels) != self.d:
                 raise ValueError(f"{optim_n}) has mismatched kernel count. Expected {self.d}, got {len(self.kernels)}.")
             # Store optimizer configurations
-            self.optimizers[optim_n] = {'kernels': self.kernels, "stopping_crit": stopping_crit}
+            self.optimizers[optim_n] = {'kernels': self.kernels, "stopping_crit": self.stopping_crit}
             # only read in matern kernel 
             if "matern" in self.kernels:
                 self.matern_nu = float(parameters['Optimizer'][optim_n]['matern_nu'])        # matern kernel smoothness 
@@ -85,12 +85,12 @@ class Config():
                 peaks.append(np.unravel_index(np.argmax(pred_means[i]), pred_means[i].shape))
 
             SimPop = PseudoNeurons(stim_inputs.C, stim_inputs.stimulus_df, stim_inputs.stim_conditions, peaks, pre_stim_window, stim_extension)
-            SimPop.set_tuning_x(exs)
+            SimPop.set_tuning_x(exs, ranges)
 
         ## Gaussian-simulated neurons
         if parameters['Neurons']['SimPop'] == 'gaussian':
             SimPop = SimNeurons(self.N, self.d, tol = 5*np.array([l[1]-l[0] for l in exs]))
-            SimPop.set_tuning_x(exs)
+            SimPop.set_tuning_x(exs, ranges)
 
             if 'tc_type' in parameters['Neurons'].keys():
                 SimPop.gen_tuning_curves(type=parameters['Neurons']['tc_type'], constraint='linear')
@@ -99,7 +99,7 @@ class Config():
 
         if parameters['Neurons']['SimPop'] == 'auditory':
             SimPop = Auditory_neurons(self.N, self.d, tol = np.array([l[1]-l[0] for l in exs]))
-            SimPop.set_tuning_x(exs)
+            SimPop.set_tuning_x(exs, ranges)
 
             # if 'tc_type' in parameters['Neurons'].keys():
             #     SimPop.gen_tuning_curves(type=parameters['Neurons']['tc_type'], constraint='linear')
@@ -119,6 +119,7 @@ class Config():
         self.var = parameters['Optimizer']['var']                     # variance of kernel
         self.nu = float(parameters['Optimizer']['nu'])                # trade off explore exploit
         self.eta = float(parameters['Optimizer']['eta'])              # noise in GP
+        self.mse_cutoff = float(parameters['Optimizer']['mse_cutoff']) 
         
         ## initial test points
         self.init_T = parameters['General']['init_T']

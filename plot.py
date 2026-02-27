@@ -46,7 +46,7 @@ def plot_prior(self,PCA_components,sample_size,nd,mean,cov,i=0):
     else:
         print("PCA components are over dimensions of the prior distribution!")
 
-def plot_correct_prediction(N, Pr_list, rsPr_list, gsPr_list, optimizer_name): #gsPr_list,
+def plot_correct_prediction(N, Pr_list, Pr_list_correct_solution, rsPr_list, gsPr_list, optimizer_name): #gsPr_list,
     ''' 
     Plots probability of making correct predictions
 
@@ -61,10 +61,9 @@ def plot_correct_prediction(N, Pr_list, rsPr_list, gsPr_list, optimizer_name): #
     None 
 
     '''
-    print(len(gsPr_list))
-    print(np.arange(0,len(gsPr_list)))
-
+    print(f"length gsPR_list: {len(gsPr_list)}")
     plt.plot(np.arange(0,len(Pr_list)), Pr_list, linestyle='-', color='b',label="Bayes Opt")
+    plt.plot(np.arange(0,len(Pr_list_correct_solution)), Pr_list_correct_solution, linestyle='-', color='g',label="Bayes Opt Just Correct Solution")
     plt.plot(np.arange(0,len(rsPr_list)), rsPr_list, linestyle='-', color='c',label="Random Sampling")
     plt.plot(np.arange(0,len(gsPr_list)), gsPr_list, linestyle='-', color='r',label="Grid Sampling")
 
@@ -177,11 +176,26 @@ def plot_tuningcurves(N, SimPop, config):
                     X, Y = np.meshgrid(x_range, y_range, indexing='ij')
                     pos = np.dstack((X, Y))
 
-                    Z_exc = stats.multivariate_normal(mean=mean_exc, cov=cov_exc).pdf(pos)
-                    Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
-                    Z_dog = Z_exc - Z_inh
+                    offset = SimPop.offset
+                    #Z_dog = SimPop.responses[n]
 
-                    print(f"Z_dog: {Z_dog}")
+                    Z_exc = stats.multivariate_normal(mean=mean_exc, cov=cov_exc).pdf(pos)
+                    #Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
+                    sideband1 = stats.multivariate_normal(mean= mean_exc - offset, cov=cov_inh)
+                    sideband2 = stats.multivariate_normal(mean=mean_exc + offset, cov= cov_inh)
+                    Z_inh = lambda pos, sb1=sideband1, sb2=sideband2: sb1.pdf(pos) + sb2.pdf(pos)
+                    #Z_dog = Z_exc - Z_inh(pos)
+                    Z_dog = np.array(SimPop.responses[n]).reshape(X.shape).T
+
+                    # plt.contourf(Z_dog.T,extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5],
+                    #     origin='lower',
+                    #     cmap='viridis',
+                    #     alpha= 1)
+                    # plt.title(f'Z_dog transposed')
+                    # plt.tight_layout
+                    # plt.show
+
+                    #print(f"Z_dog: {Z_dog}")
 
                     fig, axs = plt.subplots(1, 3, figsize=(12, 5))
                     
@@ -193,26 +207,33 @@ def plot_tuningcurves(N, SimPop, config):
                     fig.colorbar(c1, ax=axs[0])
                     
                     # Inhibition
-                    c2 = axs[1].contourf(X, Y, Z_inh, levels=20, cmap='Oranges', alpha=0.7)
+                    c2 = axs[1].contourf(X, Y, Z_inh(pos), levels=20, cmap='Oranges', alpha=0.7)
                     axs[1].set_xlabel(f'Dimension {dim1 + 1}')
                     axs[1].set_ylabel(f'Dimension {dim2 + 1}')
                     axs[1].set_title(f'Inhibitory PDF (Neuron {n})')
                     fig.colorbar(c2, ax=axs[1])
 
-                    c3 = axs[2].imshow(
+                    c3 = axs[2].contourf(
                         Z_dog,
                         extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5],
                         origin='lower',
                         cmap='viridis',
-                        alpha= 1,
-                        aspect='auto'
+                        alpha= 1
+                        #aspect='auto'
                     )
                     axs[2].set_xlabel(f'Dimension {dim1 + 1}')
                     axs[2].set_ylabel(f'Dimension {dim2 + 1}')
                     axs[2].set_title(f'DoG (Neuron {n})')
                     fig.colorbar(c3, ax=axs[2])
-                    
-                    fig.suptitle(f'Neuron {n+1}: Dimension {dim1 + 1} vs. {dim2 + 1}')
+                    axs[2].plot(
+                        SimPop.peaks[n][0],
+                        SimPop.peaks[n][1],
+                        'ro',
+                        label=f"true peak: ({SimPop.peaks[n][0]:.2f}, {SimPop.peaks[n][1]:.2f})"
+                    )
+                    axs[2].legend()
+
+                    fig.suptitle(f'Auditory Neuron {n}: Type {SimPop.peak_types[n]} Dimension {dim1 + 1} vs. {dim2 + 1}')
                     plt.xticks(x_range)
                     plt.yticks(y_range)
                     plt.tight_layout()
@@ -382,7 +403,7 @@ def plot_tuningcurves_sampled(neuron_num, config, f_peak = None):
                 x_range = config.exs[dim1]
                 y_range = config.exs[dim2]
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
-                Z_reshaped = Z.reshape(X.shape)# .T
+                Z_reshaped = Z.reshape(X.shape).T
                 plt.imshow(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
                             origin='lower', cmap='viridis', aspect='auto')
                 plt.plot(config.SimPop.peaks[neuron_num][0], config.SimPop.peaks[neuron_num][1], 'ro',
@@ -433,8 +454,8 @@ def sampling_for_plots(neuron_num, config):
                         sampled_points.append(stim_point)
                     # print(resp)
                     Z[i*len(config.exs[dim2])+ j] = resp # just sampling
-            print(f"sampled neuron 1: {sampled_points}")
-            print(f"Z_gridsample: {Z}")
+            # print(f"sampled neuron 1: {sampled_points}")
+            # print(f"Z_gridsample: {Z}")
             # # sample for nD array; discarded
             # Z = np.zeros((len(exs[dim2]), len(exs[dim1])))
             # for i in range(Z.shape[dim1]):  # 10

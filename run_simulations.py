@@ -6,13 +6,15 @@ from datetime import datetime
 
 from model.bayesopt_sampling import bayesopt_sampling 
 from model.random_sampling import random_sampling
+from model.grid_sample import grid_sampling
 from model.optimizer import calc_offline_fit 
-from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse
+from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse, plot_stopping_criteria
 from simulate.ground_truth_plot import plot_tuningcurves_Penny
 from simulate.sampling_plots import plot_tuningcurves_sampled_Penny, sampling_for_plots_Penny
 from utils.save_results import save_results
 import matplotlib.pyplot as plt
 from model.stop_functions_plots import stop_functions_plots
+from model.pareto_plot import plot_pareto_for_runs, plot_pareto_from_data
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
 if len(sys.argv) > 1:
@@ -81,11 +83,11 @@ while True:
                 N = config.N
                 SimPop = config.SimPop
                 print(f"SimPop max {SimPop.max}")
-                # plot_tuningcurves(1, SimPop, config)
-                # plot_tuningcurves_sampled(1, config, f_peak = None)
+                 #for n in range(N):
+                    #plot_tuningcurves_sampled(n, config, f_peak = None)
+                plot_tuningcurves(3, SimPop, config)
                 #plot_tuningcurves_Penny(1, SimPop, config)
-
-                #plot_tuningcurves_sampled_Penny(1, config)
+                #plot_tuningcurves_sampled_Penny(config)
                 break
 
             else:
@@ -101,6 +103,7 @@ while True:
             
             # Extract results
             Pr_list_all = []
+            Pr_list_correct_solution_all = []
             mse_final_all = []
             loc_list_all = []
             max_allN_all = []
@@ -112,6 +115,7 @@ while True:
                 results_dict = result
                 # any quicker way to do stuff?
                 Pr_list_all.append(results_dict['Pr_list'])
+                Pr_list_correct_solution_all.append(results_dict['Pr_list_correct_solution'])
                 mse_final_all.append(results_dict['mse_final'])
                 loc_list_all.append(results_dict['loc_list'])
                 max_allN_all.append(results_dict['max_allN'])
@@ -126,6 +130,7 @@ while True:
                 break
 
             elif eval_method is None or eval_method == ' ':
+                plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_crit = config.stopping_crit, EI_or_PI = "EI")
                 break
 
             else:
@@ -136,16 +141,19 @@ while True:
         config.algorithm = None
 
 rsPr_list = random_sampling(config, print_flag=True)
-gsPr_list, Z = sampling_for_plots_Penny(0, config)
+#gsPr_list = sampling_for_plots_Penny(config)
+gsPr_list = grid_sampling(config, print_flag=True)
+
+plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_crit = float(config.optimizers['optim_1']['stopping_crit']), EI_or_PI = "EI")
 
 if len(optimizers) > 1 and config.method == "parallel":  # not sure about this
     for i in range(len(optimizers)):
-        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[i])
+        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], Pr_list_correct_solution = Pr_list_correct_solution_all[i], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[i])
         #plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, optimizer_name=optimizers[i])
         plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=mse_final_all[i], loc_list=loc_list_all[i], SimPop=config.SimPop)
         plot_mse(mse_final=mse_final_all[i])
 else:  # running single kernel
-    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[0])
+    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], Pr_list_correct_solution = results_dict['Pr_list_correct_solution'], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[0])
     #plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, optimizer_name=optimizers[0])
     plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=results_dict['mse_final'], loc_list=results_dict['loc_list'], SimPop=config.SimPop, optimizer_name=optimizers[0])
     plot_mse(mse_final=results_dict['mse_final'], optimizer_name=optimizers[0])
@@ -154,6 +162,9 @@ else:  # running single kernel
 if parameters['General']['save_results'] == True:
     save_results(param_file_path=param_file_path, results_dict=results_dict)
     stop_functions_plots(section_key='stopping_allN')
+    run_data = plot_pareto_for_runs(output_dir='output', section_key='Pr_list')
+    plot_pareto_from_data(run_data)
+
 # f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
 
 # plt.figure()

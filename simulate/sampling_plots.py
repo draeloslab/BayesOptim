@@ -8,9 +8,9 @@ from sklearn.metrics import mean_squared_error
 #     def __init__(self):
 #         self.means= means
 #         self.covs=covs
-def sampling_for_plots_Penny(neuron_num, config): #formerly included neuron number as input
+def sampling_for_plots_Penny(config): 
     ''' 
-    Sample neural responses for the entire sample space
+    Grid Sample neural responses for the entire sample space
 
     params:
     ---------
@@ -25,57 +25,86 @@ def sampling_for_plots_Penny(neuron_num, config): #formerly included neuron numb
     np.random.seed(config.params['General']['seed'])
     correct_neurons = 0
     N = config.N
+    d = config.d 
     SimPop = config.SimPop
-    Z_dog = plot_tuningcurves_Penny(N,SimPop,config) 
-    print(f"config_exs: {config.exs}")
+    #Z_dog = plot_tuningcurves_Penny(N,SimPop,config) 
+    #print(f"config_exs: {config.exs}")
     #max_tests = config.params['General']['max_tests']
 
-    for dim1 in range(len(config.exs)):
-        for dim2 in range(dim1+1, len(config.exs)):
-            X, Y= np.meshgrid(config.exs[dim1], config.exs[dim2], indexing = 'ij') 
-            pos = np.dstack((X, Y))  
-            Z = np.zeros((N, len(config.exs[dim1]) * len(config.exs[dim2])))
-            print(f"Z shape: {Z.shape}")
+    # for dim1 in range(len(config.exs)):
+    #     for dim2 in range(dim1+1, len(config.exs)):
+    #         X, Y= np.meshgrid(config.exs[dim1], config.exs[dim2], indexing = 'ij') 
+    #         pos = np.dstack((X, Y))  
+    #         Z = np.zeros((N, len(config.exs[dim1]) * len(config.exs[dim2])))
+    #         #print(f"Z shape: {Z.shape}")
 
+    x_range = np.arange(0, 10, 0.5)
+    y_range = np.arange(0, 10, 0.5)
+    X, Y = np.meshgrid(x_range, y_range, indexing='ij')
+    pos = np.dstack((X, Y))  # shape: (len(x_range), len(y_range), 2)
+
+    num_x = len(x_range)
+    num_y = len(y_range)
+
+    #all_indices = [(i, j) for i in range(num_x) for j in range(num_y)]
+    sample_indices = [(i, j) for i in range(1, num_x, 2) for j in range(1, num_y, 2)]  # start at 1, step by 2
     gsPr_list = []
     correct_neurons = 0
     #tests_so_far = 0
 
+    #should I put a random seed here?
     for n in range(N):
-        flagged = False
+        flag = False
+        myflag = False
         sampled_responses = []
-        num_points = len(config.exs[dim1]) * len(config.exs[dim2])
-        half_points = 15
-        #all_indices = [(i, j) for i in range(len(config.exs[dim1])) for j in range(len(config.exs[dim2]))]
-        row_indices = np.arange(len(config.exs[dim1]))
-        random_rows = np.random.choice(row_indices, size=len(config.exs[dim1])//2, replace=False)
+        # selected_indices = np.random.choice(len(all_indices), size=50, replace=False)
+        # sample_indices = [all_indices[idx] for idx in selected_indices] 
+        
+        # num_points = len(config.exs[dim1]) * len(config.exs[dim2])
+        # half_points = num_points //4
+        # row_indices = np.arange(len(config.exs[dim1]))
+        # random_rows = np.random.choice(row_indices, size=len(config.exs[dim1])//2, replace=False)
         #print(f"random rows {random_rows}")
-        indices_struct = [(i, j) for i in random_rows for j in range(len(config.exs[dim2]))]
-        np.random.shuffle(indices_struct)
+        # indices_struct = [(i, j) for i in random_rows for j in range(len(config.exs[dim2]))]
+        # np.random.shuffle(indices_struct)
+        # for (i, j) in indices_struct[:half_points]:
+        
         #print(f"indices_struct: {indices_struct}")
-        #sample_indices = np.random.choice(range(num_points), size= 10, replace=False)
-        #sample_indices_ij = [all_indices[idx] for idx in sample_indices]
-        #for idx, (i, j) in enumerate(sample_indices_ij):
-        for (i, j) in indices_struct[:half_points]:
-            #resp = config.SimPop.sample(pos[i, j])[n]
-            #sampled_responses.append(resp)
-            #max_sample_idx = np.argmax(sampled_responses)
-            #peak_coords_pred = sample_indices_ij[max_sample_idx]
-            peak_coords_pred = (i,j)
-            # print(f"neuron {n} peak_coords_pred: {[peak_coords_pred]}")
-            peak_coords_true = np.unravel_index(np.argmax(Z_dog), Z_dog.shape)
-            mse = mean_squared_error(np.array(peak_coords_pred), np.array(peak_coords_true))
-            
-            if mse < .05 and not flagged:  #so it doesn't mark the same neuron correct twice
-                correct_neurons += 1
-                flagged = True
-                break
-
-            # Append running probability 
+        #all_indices = [(i, j) for i in range(len(config.exs[dim1])) for j in range(len(config.exs[dim2]))]
+        # for i in range(len(config.exs[dim1])): 
+        #     for j in range(len(config.exs[dim2])): 
+        #         resp = SimPop.sample(pos[i, j])[n]
+        #         Z[n][i*len(config.exs[dim2])+ j] = resp
+        # print(f"shape Z: {Z.shape}")
+        #for (i, j) in all_indices:
+        for (i, j) in sample_indices:
             gsPr_list.append(correct_neurons /N)
+            peak_coords_pred = (i,j)
+            #print(f"neuron {n} peak_coords_pred: {[peak_coords_pred]}")
+            #peak_coords_true = np.unravel_index(np.argmax(Z_dog), Z_dog.shape)
+            peak_coords_true = SimPop.peaks[n]
+            mse = mean_squared_error(np.array(peak_coords_pred), np.array(peak_coords_true))
+            dists = np.abs(np.array(peak_coords_pred), np.array(peak_coords_true))           
+            count = np.count_nonzero(dists < SimPop.tol)  
 
-    # print(f"gsPr_list: {gsPr_list}")
+            #if count > (d-1) and not flag:
+                #flag = True
+
+            #if mse < .05 and flag and not myflag: #8e-11:  #0.2
+            # if mse <= config.mse_cutoff and flag and not myflag: #8e-11:  #0.2
+            #     myflag = True
+            #     correct_neurons+=1
+            #     break
+            if mse <= config.mse_cutoff:
+            #     myflag = True
+                correct_neurons+=1
+                break
+            # Append running probability 
+    gsPr_list.append((correct_neurons) /N)
+    #print(f"gsPr_list: {gsPr_list}")
+    return gsPr_list #Z
     
+    #here is where I sample the whole stimulus space
     # for n in range(N):
     #     gsPr_list.append((correct_neurons)/N)
     #     sampled_responses = []
@@ -102,49 +131,8 @@ def sampling_for_plots_Penny(neuron_num, config): #formerly included neuron numb
     #             print(f"peak_coords_pred {peak_coords_pred}")
     #             peak_coords_true = np.unravel_index(np.argmax(Z_dog), Z_dog.shape)
     #             #print(f"peak_coords_true {peak_coords_true}")
-    #             mse = mean_squared_error(np.array(peak_coords_pred), np.array(peak_coords_true))
-    #             print(f"neuron {n} gs mse: {mse}")
-    #     # print("stim_pred:", np.array(peak_coords_pred), "stim_true:", np.array(peak_coords_true))
-    #     # print("peak_coords_pred:", peak_coords_pred, "peak_coords_true:", peak_coords_true)
-    #     # print("mse input shape:", np.array(peak_coords_pred).shape, np.array(peak_coords_true).shape)
-    #             if mse < .05:  
-    #                 correct_neurons += 1
-    #             #print(f"Z_max_neuron{n}: {Z[n][np.argmax(Z)]}")
-    #     if n == N-1:
-    #         gsPr_list.append(float(correct_neurons)/float(N))
-    # print(f"gsPr_list: {gsPr_list}")
-    # for entry in gsPr_list:
-    #     print(type(entry), entry)
-    
-    # plt.plot(np.arange(0,len(gsPr_list)), gsPr_list, linestyle='-', color='r',label="Grid Sampling")
-    # plt.xlabel('# of predictions')
-    # plt.ylabel('Probability')
-    # plt.title(f'Probability of making correct predictions')
-    # props = dict(boxstyle='round', facecolor='wheat', alpha=0.5)
-    # textstr = f" # of neurons = {N}"
-    # plt.text(0.50, 0.90, textstr,  fontsize=14, verticalalignment='top', bbox=props)
-    
-    # plt.legend()
-    # plt.show()
-    return gsPr_list, Z[neuron_num] #Z need to return z for plot_tuningcurves_sampled below
-#peak_idx = np.argmax(Z_dog)        
-                # peak_coords = np.unravel_index(peak_idx, Z_dog.shape)  # gets (i, j)
-                # peak_value = Z_dog[peak_coords]
-                #needs an array for the y_true parameter
-                #should i be testing the location of the peak or the value of the peak?
-                #location (index) i think
-                # mse = mean_squared_error(Z[n][np.argmax(Z)],  Z_dog.flat[peak_idx])
-
-
-                #  block_height = 2
-                # block_width = 5
-                # i_start = np.random.randint(0, len(config.exs[dim1]) - block_height + 1)
-                # j_start = np.random.randint(0, len(config.exs[dim2]) - block_width + 1)
-                # for di in range(block_height):
-                #     for dj in range(block_width):
-                #         i = i_start + di
-                #         j = j_start + dj
-def plot_tuningcurves_sampled_Penny(neuron_num, config):
+    #  
+def plot_tuningcurves_sampled_Penny(config):
     ''' 
     Plot tuning curves as 2D imshow plot for each dimension pair with true, sampled, and offline peaks
 
@@ -159,21 +147,22 @@ def plot_tuningcurves_sampled_Penny(neuron_num, config):
     None 
 
     '''
-    gsPr_list, Z = sampling_for_plots_Penny(neuron_num, config)
-    sampled_peak = config.x_star[np.argmax(Z)] #unravel_index(Z.argmax(), np.transpose(Z.shape))
+    gsPr_list, Z = sampling_for_plots_Penny(config)
+    #unravel_index(Z.argmax(), np.transpose(Z.shape))
     for dim1 in range(len(config.exs)):
         for dim2 in range(dim1+1, len(config.exs)):
-            for n in range(neuron_num, neuron_num+1):
+            for n in range(config.N):
                 plt.figure(figsize=(8, 6))
                 x_range = config.exs[dim1]
                 y_range = config.exs[dim2]
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
-                Z_reshaped = Z.reshape(X.shape)#.T
-                print(f"Z_reshaped neuron {neuron_num}: {Z_reshaped}; Z_reshaped neuron: {Z_reshaped.shape}; Z shape is: {Z.shape}")
-                plt.imshow(Z_reshaped, #extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
+                sampled_peak = config.x_star[np.argmax(Z[n])]
+                Z_reshaped = Z[n].reshape(X.shape).T
+                #print(f"Z_reshaped neuron {n}: {Z_reshaped}; Z_reshaped neuron: {Z_reshaped.shape}; Z shape is: {Z.shape}")
+                plt.contourf(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
                             origin='lower', cmap='viridis', aspect='auto')
-                plt.plot(config.SimPop.peaks[neuron_num][0], config.SimPop.peaks[neuron_num][1], 'ro',
-                        label = f"true peak: ({config.SimPop.peaks[neuron_num][0]:.2f}, {config.SimPop.peaks[neuron_num][1]:.2f})")
+                plt.plot(config.SimPop.peaks[n][0], config.SimPop.peaks[n][1], 'ro',
+                        label = f"true peak: ({config.SimPop.peaks[n][0]:.2f}, {config.SimPop.peaks[n][1]:.2f})")
                 plt.plot(sampled_peak[dim1], sampled_peak[dim2], 'bo',
                         label = f"sampled peak: ({sampled_peak[dim1]:.2f}, {sampled_peak[dim2]:.2f})")
                 # if f_peak is not None:
@@ -185,6 +174,7 @@ def plot_tuningcurves_sampled_Penny(neuron_num, config):
                 plt.xticks(y_range)
                 plt.yticks(x_range)
                 plt.colorbar(label='Sampled Response')
-                plt.title(f'Neuron {neuron_num} - Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
+                plt.title(f'Neuron {n} - Tuning Curves for Dimension {dim1 + 1} vs. Dimension {dim2 + 1}')
+                plt.tight_layout()
                 plt.show()
 

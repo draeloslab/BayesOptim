@@ -32,6 +32,8 @@ def save_results(param_file_path, results_dict):
     print(f'Saved results dictionary as pickle file in {output_folder}')
 
 
+    # Preparing for checking online and offline fits. saving the same data. need to check this. 
+    #does not accommodate reruns well
     # with open(results_file, 'rb') as f:
     #     results_dict_pickle = pickle.load(f)
 

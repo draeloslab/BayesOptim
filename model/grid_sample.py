@@ -1,7 +1,7 @@
 import numpy as np
 from sklearn.metrics import mean_squared_error
 
-def random_sampling(c, print_flag=False):
+def grid_sampling(c, print_flag=False):
     ''' Random sampling
 
     params:
@@ -11,13 +11,13 @@ def random_sampling(c, print_flag=False):
 
     returns: 
     ---------
-    rsPr_list (list)  : probabilities of correct predictions using random sampling
+    gsPr_list (list)  : probabilities of correct predictions using random sampling
     '''
 
     rsnt=0 # overall # of tests for an algorithm run\
     rscn=0 # num of correct neurons in random sampling
     t=0
-    rsPr_list=[] # random sampling Pr_list; num of pred neurons / overall neurons for random sampling
+    gsPr_list=[] # random sampling Pr_list; num of pred neurons / overall neurons for random sampling
 
     ## Making local variables here for simplicity
     N = c.N
@@ -25,11 +25,18 @@ def random_sampling(c, print_flag=False):
     max_tests = c.max_tests
     X0 = c.X0
     x_star = c.x_star
+    print(f"x_star: {x_star}")
     SimPop = c.SimPop
+    x_coarse = np.array([0, 1, 2, 3, 6, 7, 8, 9])
+    x_fine   = np.array([4, 4.5, 5, 5.5])  # finer around middle
+    x_range = np.concatenate([x_coarse, x_fine])
+    y_range = np.arange(0, 10, 0.5)
+    X, Y = np.meshgrid(x_range, y_range, indexing='ij')
+    grid_points = np.column_stack([X.ravel(), Y.ravel()]) 
 
     printing = print_flag
 
-    print('Running Random Sampling ...')   
+    print('Running Grid Sampling ...')   
     for n_optim in range(N):
                 
         #################Optimize per neuron#############################
@@ -43,9 +50,8 @@ def random_sampling(c, print_flag=False):
         myflag = False
         max_value = 0
         peak_guess = X0[0]
-
-        xs_copy=x_star.copy() # copy a new X_star for each neuron
-
+        xs_copy = grid_points.copy()
+        
         if printing:
             print('Number ', n_optim, '; peak of this neuron: ', SimPop.peaks[n_optim])
 
@@ -54,13 +60,14 @@ def random_sampling(c, print_flag=False):
         for cnt in range(max_tests):
             rsnt+=1    # nt +1 each run each neuron
             t+=1
-            rsPr_list.append(rscn/N) # num of pred neurons / overall neurons for random sampling
+            gsPr_list.append(rscn/N) # num of pred neurons / overall neurons for random sampling
 
-            nrows = xs_copy.shape[0]
-            random_indices = np.random.choice(nrows, size=1, replace=False)
+            # nrows = xs_copy.shape[0]
+            # random_indices = np.random.choice(nrows, size=1, replace=False)
+            #print(f"Random sampling pl {pl}")
+            random_indices = np.random.choice(len(xs_copy), size=1, replace=False)
             pl= xs_copy[random_indices,] # the loc of peak
             pl=pl.ravel()
-            #print(f"Random sampling pl {pl}")
             # for double-peaks only
             if c.params['Neurons']['tc_type'] == "double_peaks":
                 dists = np.abs(pl - SimPop.peaks[random_peak_number][n_optim])
@@ -93,6 +100,6 @@ def random_sampling(c, print_flag=False):
             if cnt == max_tests-1:
                 print('-------------------- used all ', max_tests,' tests and did not finish; got close? ', np.around(dists, 2))
 
-    rsPr_list.append((rscn)/N)
+    gsPr_list.append((rscn)/N)
     #print(f"Random Sampling rsPr list {rsPr_list}")
-    return rsPr_list
+    return gsPr_list

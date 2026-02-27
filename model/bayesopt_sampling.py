@@ -31,7 +31,8 @@ def bayesopt_sampling(c, print_flag=False):
     '''
 
     t=0
-    cn=0
+    cn=0 #correct neurons when EI is below criteria
+    correct_neurons_real = 0 #correct neurons with correct solution even if EI is above criteria
     nt=0
 
     printing = print_flag
@@ -39,6 +40,7 @@ def bayesopt_sampling(c, print_flag=False):
 
     ## TODO: results object
     Pr_list = []
+    Pr_list_correct_solution = []
     mse_allN = [None]*c.N
     stopping_allN = [None]*c.N
     max_allN = [None]*c.N
@@ -132,6 +134,7 @@ def bayesopt_sampling(c, print_flag=False):
             nt += 1
             t += 1
             Pr_list.append(cn/c.N)
+            Pr_list_correct_solution.append(correct_neurons_real/c.N)
 
             _, xt_1 = optim.max_acq()  # change this to multiple peaks? 
             y = c.SimPop.sample(xt_1)
@@ -145,7 +148,7 @@ def bayesopt_sampling(c, print_flag=False):
             # print(n_optim, xt_1, y[n_optim])
             optim.update_GP(xt_1, y[n_optim])
             pl = optim.x_star[np.argmax(optim.f)]
-            print(f"pl: {pl}")
+            #print(f"pl: {pl}")
             dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
             count_list.append(count)
             #print(f"count list: {count_list}")
@@ -153,29 +156,23 @@ def bayesopt_sampling(c, print_flag=False):
             # dists, pixels_correct, mse = c.SimPop.verify_sln_double(pl, n_optim)
             EI, PI = optim.stopping()
             mse_list.append(mse)
-            print(f"mse_list: {mse_list}")
+            #print(f"mse_list: {mse_list}")
             stopping_list.append(optim.stopping())
             max_list.append(pl)
             f_list.append(optim.f)
             sigma_list.append(optim.sigma)
-            #if pixels_correct > (c.d-1) and not correct_solution:
-            #     correct_solution = True
-                # print("for first if")
-
-            if mse ==0 and not correct_solution:
+            if count > (c.d-1) and not correct_solution:
                 correct_solution = True
-                print("for first if")
-
-            # if mse == 0 and not correct_solution:
-            #     correct_solution = True
-
             # if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # got rid of the correct_solution, more like improv
             if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # the original original one
             #if EI < optimizer_stopping_crit and not done_optimizing:
                 done_optimizing = True
                 cn += 1
                 runt_list[n_optim] += nt
-                print("for second if")
+                #print("for first if")
+            if correct_solution:
+                correct_neurons_real += 1
+                #print("for second if")
                 break
 
             if cnt == c.max_tests-1:
@@ -221,13 +218,8 @@ def bayesopt_sampling(c, print_flag=False):
         test_time_neuron[n_optim] = test_time
         # neuron_time[n_optim] = end_neuron - start_neuron    
     Pr_list.append(cn/ c.N)
+    Pr_list_correct_solution.append(correct_neurons_real/ c.N)
     mse_final = [neuron_mse[-1] for neuron_mse in mse_allN]
-    
-    wrong_shape = f_all[0][-1].shape
-    right_shape = f_all[0][-1].shape
-    #print(f"wrong neuron: {f_all[4][-1]}, wrong shape: {wrong_shape}")
-    #print(f"right neuron: {f_all[0][-1]}, right shape: {right_shape}")
-    # print(f"another right neuron: {f_all[9][-1]}")
 
     exs = [np.arange(6), np.arange(5)]
     for dim1 in range(len(exs)):
@@ -240,6 +232,7 @@ def bayesopt_sampling(c, print_flag=False):
 
     results_dict = {
         "Pr_list": Pr_list,
+        "Pr_list_correct_solution": Pr_list_correct_solution,
         "mse_final": mse_final,
         "loc_list": loc_list,
         "max_allN": max_allN,
@@ -252,8 +245,9 @@ def bayesopt_sampling(c, print_flag=False):
         "test_time_neuron": test_time_neuron,
     }
     
-    print(f"BayesOpt Prlist: {results_dict['Pr_list']}")
-    print(f"stopping all length: {len(results_dict['stopping_allN'])}")
+    # print(f"BayesOpt Prlist: {results_dict['Pr_list']}")
+    # print(f"BayesOpt Prlist_correct_solution: {results_dict['Pr_list_correct_solution']}")
+    # print(f"stopping all length: {len(results_dict['stopping_allN'])}")
     # for block in results_dict['stopping_allN']:
     #     print("block:", block)
     #     for pair in block:
@@ -261,7 +255,7 @@ def bayesopt_sampling(c, print_flag=False):
     stopping_vals = results_dict['stopping_allN']
     #EI_vals = []
     for n in range(c.N):
-        print(f"stopping vals {stopping_vals[n]}")
+        #print(f"stopping vals {stopping_vals[n]}")
         EI_vals = [x[0] for x in stopping_vals[n]]
         # print(f"EI vals {EI_vals}")
         plt.plot(EI_vals, label= f'Neuron {n+1}')
