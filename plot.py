@@ -166,10 +166,10 @@ def plot_tuningcurves(N, SimPop, config):
         for dim2 in range(dim1+1, len(config.exs)):
             plt.figure(figsize=(8, 6))
             for n in range(N):
+                #Here is the ground truth plot 
                 if config.params['Neurons']['SimPop'] == "auditory": 
                     mean_exc = SimPop.mean1[n, [dim1, dim2]]     
-                    cov_exc = SimPop.covs1[n][[dim1, dim2]][:, [dim1, dim2]] 
-                    mean_inh = SimPop.mean2[n, [dim1, dim2]]      
+                    cov_exc = SimPop.covs1[n][[dim1, dim2]][:, [dim1, dim2]]    
                     cov_inh = SimPop.covs2[n][[dim1, dim2]][:, [dim1, dim2]]
                     x_range = config.exs[dim1]
                     y_range = config.exs[dim2]
@@ -177,25 +177,15 @@ def plot_tuningcurves(N, SimPop, config):
                     pos = np.dstack((X, Y))
 
                     offset = SimPop.offset
-                    #Z_dog = SimPop.responses[n]
 
                     Z_exc = stats.multivariate_normal(mean=mean_exc, cov=cov_exc).pdf(pos)
-                    #Z_inh = stats.multivariate_normal(mean=mean_inh, cov=cov_inh).pdf(pos)
                     sideband1 = stats.multivariate_normal(mean= mean_exc - offset, cov=cov_inh)
                     sideband2 = stats.multivariate_normal(mean=mean_exc + offset, cov= cov_inh)
-                    Z_inh = lambda pos, sb1=sideband1, sb2=sideband2: sb1.pdf(pos) + sb2.pdf(pos)
-                    #Z_dog = Z_exc - Z_inh(pos)
+    
+                    Z_inh = SimPop.inhibition_sum(pos, sideband1, sideband2)
+                    #Z_dog = Z_exc - Z_inh
                     Z_dog = np.array(SimPop.responses[n]).reshape(X.shape).T
-
-                    # plt.contourf(Z_dog.T,extent=[x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5],
-                    #     origin='lower',
-                    #     cmap='viridis',
-                    #     alpha= 1)
-                    # plt.title(f'Z_dog transposed')
-                    # plt.tight_layout
-                    # plt.show
-
-                    #print(f"Z_dog: {Z_dog}")
+                    print(f"Z_dog: {Z_dog}")
 
                     fig, axs = plt.subplots(1, 3, figsize=(12, 5))
                     
@@ -207,7 +197,7 @@ def plot_tuningcurves(N, SimPop, config):
                     fig.colorbar(c1, ax=axs[0])
                     
                     # Inhibition
-                    c2 = axs[1].contourf(X, Y, Z_inh(pos), levels=20, cmap='Oranges', alpha=0.7)
+                    c2 = axs[1].contourf(X, Y, Z_inh, levels=20, cmap='Oranges', alpha=0.7)
                     axs[1].set_xlabel(f'Dimension {dim1 + 1}')
                     axs[1].set_ylabel(f'Dimension {dim2 + 1}')
                     axs[1].set_title(f'Inhibitory PDF (Neuron {n})')

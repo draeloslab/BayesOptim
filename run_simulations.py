@@ -9,12 +9,11 @@ from model.random_sampling import random_sampling
 from model.grid_sample import grid_sampling
 from model.optimizer import calc_offline_fit 
 from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse, plot_stopping_criteria
-from simulate.ground_truth_plot import plot_tuningcurves_Penny
-from simulate.sampling_plots import plot_tuningcurves_sampled_Penny, sampling_for_plots_Penny
+from simulate.sampling_plots import plot_tuningcurves_sampled_auditory, sampling_for_plots_auditory
 from utils.save_results import save_results
 import matplotlib.pyplot as plt
-from model.stop_functions_plots import stop_functions_plots
-from model.pareto_plot import plot_pareto_for_runs, plot_pareto_from_data
+from simulate.stop_functions_plots import stop_functions_plots
+from simulate.pareto_plot import gather_hyperparameters, plot_pareto_from_data
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
 if len(sys.argv) > 1:
@@ -82,12 +81,8 @@ while True:
                 results_dict = bayesopt_sampling(config, print_flag=True)
                 N = config.N
                 SimPop = config.SimPop
-                print(f"SimPop max {SimPop.max}")
-                 #for n in range(N):
-                    #plot_tuningcurves_sampled(n, config, f_peak = None)
-                plot_tuningcurves(3, SimPop, config)
-                #plot_tuningcurves_Penny(1, SimPop, config)
-                #plot_tuningcurves_sampled_Penny(config)
+                plot_tuningcurves(N, SimPop, config) #Ground truth plot
+                plot_tuningcurves_sampled_auditory(config) #Sampling Sanity check plot (samples the whole stimulus space)
                 break
 
             else:
@@ -141,7 +136,6 @@ while True:
         config.algorithm = None
 
 rsPr_list = random_sampling(config, print_flag=True)
-#gsPr_list = sampling_for_plots_Penny(config)
 gsPr_list = grid_sampling(config, print_flag=True)
 
 plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_crit = float(config.optimizers['optim_1']['stopping_crit']), EI_or_PI = "EI")
@@ -149,33 +143,39 @@ plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_cr
 if len(optimizers) > 1 and config.method == "parallel":  # not sure about this
     for i in range(len(optimizers)):
         plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], Pr_list_correct_solution = Pr_list_correct_solution_all[i], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[i])
-        #plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, optimizer_name=optimizers[i])
         plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=mse_final_all[i], loc_list=loc_list_all[i], SimPop=config.SimPop)
         plot_mse(mse_final=mse_final_all[i])
 else:  # running single kernel
     plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], Pr_list_correct_solution = results_dict['Pr_list_correct_solution'], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[0])
-    #plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, optimizer_name=optimizers[0])
     plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=results_dict['mse_final'], loc_list=results_dict['loc_list'], SimPop=config.SimPop, optimizer_name=optimizers[0])
     plot_mse(mse_final=results_dict['mse_final'], optimizer_name=optimizers[0])
     plot_run_time(test_time_neuron=results_dict['test_time_neuron'], average=True)
 
 if parameters['General']['save_results'] == True:
-    save_results(param_file_path=param_file_path, results_dict=results_dict)
+    config = Config(file=param_file_path)
+    online_grid2, new_xarray, new_yarray = save_results(config, param_file_path=param_file_path, results_dict=results_dict)
     stop_functions_plots(section_key='stopping_allN')
-    run_data = plot_pareto_for_runs(output_dir='output', section_key='Pr_list')
+    run_data = gather_hyperparameters(output_dir='output', section_key='Pr_list')
     plot_pareto_from_data(run_data)
 
-# f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
+
+for dim1 in range(len(config.exs)):
+        for dim2 in range(dim1+1, len(config.exs)):
+            x_range = config.exs[dim1]
+            y_range = config.exs[dim2]
+            X, Y = np.meshgrid(x_range, y_range, indexing='ij')
+#f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
+# print(f"f: {f}")
 
 # plt.figure()
-# plt.imshow(f.reshape(6, 5), cmap='viridis', origin='lower')
+# plt.imshow(f.reshape(X.shape).T, cmap='viridis', origin='lower')
 # plt.title('Offline GP Fit')
 # plt.colorbar(label='GP Mean')
 # plt.show()
 
 # print(f"offline {f.reshape(6,5)}")
-# print(f"online {right_grid}")
-# np.allclose(f.reshape(6,5), right_grid, atol = 1e-3)
+# print(f"online {online_grid}")
+# np.allclose(f.reshape(X.shape).T, right_grid, atol = 1e-3)
 
     
 

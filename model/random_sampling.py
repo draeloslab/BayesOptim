@@ -18,8 +18,6 @@ def random_sampling(c, print_flag=False):
     rscn=0 # num of correct neurons in random sampling
     t=0
     rsPr_list=[] # random sampling Pr_list; num of pred neurons / overall neurons for random sampling
-
-    ## Making local variables here for simplicity
     N = c.N
     d = c.d
     max_tests = c.max_tests
@@ -36,13 +34,8 @@ def random_sampling(c, print_flag=False):
         # For each neuron, X0 contains the initial X + points sampled from X_* from previous neurons' optimization.
         #i.e., T is enlarging and thus A shape is bigger
 
-        stopping_list = []
-        max_list = []
-        mse_list = []
         flag = False
         myflag = False
-        max_value = 0
-        peak_guess = X0[0]
 
         xs_copy=x_star.copy() # copy a new X_star for each neuron
 
@@ -70,9 +63,6 @@ def random_sampling(c, print_flag=False):
                 mse= mean_squared_error(pl,  SimPop.peaks[n_optim])
                 # print(f"Random sampling: mse {mse}")
 
-            # # for double-peaks only
-            # dists = np.abs(pl - SimPop.peaks[random_peak_number][n_optim])
-            # mse= mean_squared_error(pl,  SimPop.peaks[random_peak_number][n_optim])
 
             count = np.count_nonzero(dists < SimPop.tol) #--count dist within tolerance
             xs_copy=np.delete(xs_copy, random_indices, axis=0)#sample without replacement
@@ -80,15 +70,11 @@ def random_sampling(c, print_flag=False):
             if count > (d-1) and not flag:
                 flag = True
 
-
-            #if mse < .05 and flag and not myflag: #8e-11:  #0.2
-            if mse <= c.mse_cutoff and flag and not myflag: #8e-11:  #0.2
+            if mse <= c.mse_cutoff and flag and not myflag:
                 myflag = True
                 rscn+=1
                 break
-            # if mse <= c.mse_cutoff:
-            #     rscn += 1
-            #     break
+
 
             if cnt == max_tests-1:
                 print('-------------------- used all ', max_tests,' tests and did not finish; got close? ', np.around(dists, 2))

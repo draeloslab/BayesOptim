@@ -24,6 +24,7 @@ python run_simulations.py parameter.yml
 Running this, will output a `results_dict` which contains the resulting parameters: 
 
 `Pr_list (list)`          : probabilities of correct predictions using Bayes Opt sampling <br>
+`Pr_list_correct_solution`: probabilities of correct predictions even if EI is still above stopping criteria using Bayes Opt sampling
 `mse_final (list)`        : final MSE values for each neuron <br>
 `loc_list (list)`         : final predicted peak locations for each neuron <br>
 `max_allN (list)`         : predicted peak locations for each test run for each neuron <br>

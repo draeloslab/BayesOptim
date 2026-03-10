@@ -96,14 +96,12 @@ class Config():
                 SimPop.gen_tuning_curves(type=parameters['Neurons']['tc_type'], constraint='linear')
             else:
                 SimPop.gen_tuning_curves(type='indep', constraint='linear')
+        
 
+        #Auditory Difference of Gaussian-simulated neurons
         if parameters['Neurons']['SimPop'] == 'auditory':
             SimPop = Auditory_neurons(self.N, self.d, tol = np.array([l[1]-l[0] for l in exs]))
             SimPop.set_tuning_x(exs, ranges)
-
-            # if 'tc_type' in parameters['Neurons'].keys():
-            #     SimPop.gen_tuning_curves(type=parameters['Neurons']['tc_type'], constraint='linear')
-            # else:
             SimPop.gen_tuning_curves(type='indep', constraint=None)
 
         xs = np.meshgrid(*exs, indexing='ij')

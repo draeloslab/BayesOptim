@@ -8,7 +8,7 @@ General:
   save_results: True
 
 Neurons:
-  N: 100 # 100 # number of neurons or number of electrodes (FUTURE)
+  N: 1 # number of neurons 
   tc_type: 'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
   constraint: None #'peak_distance' #'linear'
   SimPop: 'auditory' # options: gaussian, pseudo, auditory (only used during simulation runs)

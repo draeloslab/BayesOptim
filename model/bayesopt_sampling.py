@@ -151,9 +151,6 @@ def bayesopt_sampling(c, print_flag=False):
             #print(f"pl: {pl}")
             dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
             count_list.append(count)
-            #print(f"count list: {count_list}")
-            #dists, pixels_correct, mse = c.SimPop.verify_sln(pl, n_optim)
-            # dists, pixels_correct, mse = c.SimPop.verify_sln_double(pl, n_optim)
             EI, PI = optim.stopping()
             mse_list.append(mse)
             #print(f"mse_list: {mse_list}")
@@ -163,16 +160,12 @@ def bayesopt_sampling(c, print_flag=False):
             sigma_list.append(optim.sigma)
             if count > (c.d-1) and not correct_solution:
                 correct_solution = True
-            # if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # got rid of the correct_solution, more like improv
-            if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:  # the original original one
-            #if EI < optimizer_stopping_crit and not done_optimizing:
+            if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:
                 done_optimizing = True
                 cn += 1
                 runt_list[n_optim] += nt
-                #print("for first if")
             if correct_solution:
                 correct_neurons_real += 1
-                #print("for second if")
                 break
 
             if cnt == c.max_tests-1:
@@ -247,22 +240,22 @@ def bayesopt_sampling(c, print_flag=False):
     
     # print(f"BayesOpt Prlist: {results_dict['Pr_list']}")
     # print(f"BayesOpt Prlist_correct_solution: {results_dict['Pr_list_correct_solution']}")
-    # print(f"stopping all length: {len(results_dict['stopping_allN'])}")
-    # for block in results_dict['stopping_allN']:
-    #     print("block:", block)
-    #     for pair in block:
-    #         print("pair:", pair, "type:", type(pair))
-    stopping_vals = results_dict['stopping_allN']
-    #EI_vals = []
-    for n in range(c.N):
-        #print(f"stopping vals {stopping_vals[n]}")
-        EI_vals = [x[0] for x in stopping_vals[n]]
-        # print(f"EI vals {EI_vals}")
-        plt.plot(EI_vals, label= f'Neuron {n+1}')
-    plt.xlabel('Test Step')
-    plt.ylabel('Expected Improvement')
-    plt.title(f'EI vs Optimization Step for gamma= {c.gamma}, stop={optimizer_stopping_crit}')
-    plt.legend()
-    plt.show()
+    print(f"stopping all length: {len(results_dict['stopping_allN'])}")
+    for block in results_dict['stopping_allN']:
+        print("block:", block)
+        for pair in block:
+            print("pair:", pair, "type:", type(pair))
+    # stopping_vals = results_dict['stopping_allN']
+    # #EI_vals = []
+    # for n in range(c.N):
+    #     #print(f"stopping vals {stopping_vals[n]}")
+    #     EI_vals = [x[0] for x in stopping_vals[n]]
+    #     # print(f"EI vals {EI_vals}")
+    #     plt.plot(EI_vals, label= f'Neuron {n+1}')
+    # plt.xlabel('Test Step')
+    # plt.ylabel('Expected Improvement')
+    # plt.title(f'EI vs Optimization Step for gamma= {c.gamma}, stop={optimizer_stopping_crit}')
+    # plt.legend()
+    # plt.show()
     return results_dict
  
