@@ -25,11 +25,27 @@ def grid_sampling(c, print_flag=False):
     max_tests = c.max_tests
     X0 = c.X0
     x_star = c.x_star
+    #print(f"x_Star {x_star}")
     SimPop = c.SimPop
-    x_coarse = np.array([0, 1, 2, 3, 6, 7, 8, 9])
-    x_fine   = np.array([4, 4.5, 5, 5.5])  # finer around middle of stimulus space
+    # x_coarse = np.array([0, 1, 2, 3, 6, 7, 8, 9])
+    # x_fine   = np.array([4, 4.5, 5, 5.5])  # finer around middle of stimulus space
+    # x_range = np.concatenate([x_coarse, x_fine])
+    # y_range = np.arange(0, 10, 0.5)
+    x_min, x_max = int(x_star[:, 0].min()), int(x_star[:, 0].max()) + 1
+    y_min, y_max = int(x_star[:, 1].min()), int(x_star[:, 1].max()) + 1
+
+
+    x_mid_low  = x_min + (x_max - x_min) * 0.4   # 40% mark
+    x_mid_high = x_min + (x_max - x_min) * 0.6   # 60% mark
+
+    x_coarse = np.concatenate([
+        np.arange(x_min, x_mid_low,  1),   # coarse before middle
+        np.arange(x_mid_high, x_max, 1)    # coarse after middle
+    ])
+    x_fine = np.arange(x_mid_low, x_mid_high, 0.5)  # fine in middle
+
     x_range = np.concatenate([x_coarse, x_fine])
-    y_range = np.arange(0, 10, 0.5)
+    y_range = np.arange(y_min, y_max, 1)  # or do the same for y if needed
     X, Y = np.meshgrid(x_range, y_range, indexing='ij')
     grid_points = np.column_stack([X.ravel(), Y.ravel()]) 
 
@@ -60,7 +76,7 @@ def grid_sampling(c, print_flag=False):
             t+=1
             gsPr_list.append(gscn/N) # num of pred neurons / overall neurons for random sampling
 
-            np.random.seed(40)
+            #np.random.seed(40)
             random_indices = np.random.choice(len(xs_copy), size=1, replace=False)
             pl= xs_copy[random_indices,] # the loc of peak
             pl=pl.ravel()

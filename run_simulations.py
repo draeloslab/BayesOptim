@@ -8,7 +8,6 @@ from model.bayesopt_sampling import bayesopt_sampling
 from model.random_sampling import random_sampling
 from model.grid_sample import grid_sampling
 from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse, plot_stopping_criteria
-from utils.sampling_plots import plot_tuningcurves_sampled_auditory, sampling_for_plots_auditory
 from utils.save_results import save_results
 import matplotlib.pyplot as plt
 from utils.plot_noisy_and_clean_tuning import plot_noisy_and_clean_tuning
@@ -86,7 +85,6 @@ while True:
                 plot_tuningcurves(N, SimPop, config) #Ground truth plot
                 plot_tuningcurves_sampled(1, config, f_peak = None) #Make sure you enter a specific neuron index as first argument
                 #if parameters['Neurons']['SimPop'] == 'auditory':
-                    #plot_tuningcurves_sampled_auditory(config) #Sampling Sanity check plot (samples the whole stimulus space)
                 break
 
             else:
@@ -158,8 +156,9 @@ else:  # running single kernel
 if parameters['General']['save_results'] == True:
     config = Config(file=param_file_path)
     results_file = save_results(config, param_file_path=param_file_path, results_dict=results_dict)
-    plot_noisy_and_clean_tuning(config, 1) #last argument is neuron index
-    online_grid2, new_xarray, new_yarray = gathering_data(config, results_file,1) #last argument is the neuron index 
+    if parameters['Neurons']['SimPop'] == 'auditory' and parameters['Neurons']['add_noise'] == True:
+        plot_noisy_and_clean_tuning(config, 1) #last argument is neuron index
+    online_grid2, new_xarray, new_yarray = gathering_data(config, results_file, 1) #last argument is the neuron index 
     f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
     plotting_offline_and_online_fits(config, f, online_grid2, 1) #last argument is the neuron index
     stop_functions_plots(section_key='stopping_allN')

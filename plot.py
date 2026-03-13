@@ -393,8 +393,6 @@ def plot_tuningcurves_sampled(neuron_num, config, f_peak = None):
                 y_range = config.exs[dim2]
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
                 Z_reshaped = Z.reshape(X.shape).T
-                # plt.imshow(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
-                #             origin='lower', cmap='viridis', aspect='auto')
                 plt.contourf(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
                             origin='lower', cmap='viridis')
                 plt.plot(config.SimPop.peaks[neuron_num][0], config.SimPop.peaks[neuron_num][1], 'ro',

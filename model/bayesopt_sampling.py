@@ -20,7 +20,9 @@ def bayesopt_sampling(c, print_flag=False):
 
     returns: 
     ---------
-    Pr_list (list)          : probabilities of correct predictions using Bayes Opt sampling
+    Pr_list (list)          : probabilities of correct predictions AND EI < stopping crit using Bayes Opt sampling
+    Pr_list_correct_solution: probabilities of correct predictions even if EI is still above stopping criteria 
+    using Bayes Opt sampling
     mse_final (list)        : final MSE values for each neuron
     loc_list (list)         : final predicted peak locatoins for each neuron
     max_allN (list)         : predicted peak locations for each test run for each neuron
@@ -38,8 +40,8 @@ def bayesopt_sampling(c, print_flag=False):
 
 
     ## TODO: results object
-    Pr_list = []
-    Pr_list_correct_solution = []
+    Pr_list = [] #when EI < stopping crit and correct solution
+    Pr_list_correct_solution = [] #only when correct solution
     mse_allN = [None]*c.N
     stopping_allN = [None]*c.N
     max_allN = [None]*c.N
@@ -149,7 +151,7 @@ def bayesopt_sampling(c, print_flag=False):
             # print(n_optim, xt_1, y[n_optim])
             optim.update_GP(xt_1, y[n_optim])
             pl = optim.x_star[np.argmax(optim.f)]
-            print(f"pl: {pl}")
+            #print(f"pl: {pl}")
             dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
             count_list.append(count)
             EI, PI = optim.stopping()

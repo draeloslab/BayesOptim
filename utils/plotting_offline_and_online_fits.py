@@ -1,19 +1,12 @@
 import matplotlib.pylab as plt
-import scipy.stats as stats
 import numpy as np
-from model.optimizer import calc_offline_fit 
-import os
-import yaml
 import pickle
-from datetime import datetime as dt 
-import numpy as np
 
 def gathering_data(config, results_file, neuron_idx): 
     with open(results_file, 'rb') as f:
             results_dict_pickle = pickle.load(f)
             online_grid1 = np.array(results_dict_pickle['f_all'][neuron_idx][-1])
             print(f"online grid1: {online_grid1}")
-            #FIX THIS 
             for dim1 in range(len(config.exs)):
                 for dim2 in range(dim1+1, len(config.exs)):
                     x_range = config.exs[dim1]
@@ -21,17 +14,8 @@ def gathering_data(config, results_file, neuron_idx):
                     X, Y = np.meshgrid(x_range, y_range, indexing='ij')
                     online_grid2 = online_grid1.reshape(X.shape)
                     print(f"online grid2: {online_grid2}")
-        # print(f'sample x Neuron 0: {results_dict_pickle["sample_x"][0]["initial"]}')
-        # print(f'sample x: {results_dict_pickle["sample_x"][0]["selected"]}')
-        # print(f'sample y: {results_dict_pickle["sample_y"][0]["initial"]}')
-        # print(f'sample y: {results_dict_pickle["sample_y"][0]["selected"]}')
-        # print(f'sample x Neuron 1: {results_dict_pickle["sample_x"][1]["initial"]}')
-        # print(f'sample x: {results_dict_pickle["sample_x"][1]["selected"]}')
-        # print(f'sample y: {results_dict_pickle["sample_y"][1]["initial"]}')
-        # print(f'sample y: {results_dict_pickle["sample_y"][1]["selected"]}')
-
-# #SAMPLE X
-
+ 
+            #SAMPLE X
             xarray1 = np.array(results_dict_pickle['sample_x'][neuron_idx]['initial'][-1])
             xarray1_flat = xarray1.reshape(-1, xarray1.shape[-1])
 
@@ -41,7 +25,7 @@ def gathering_data(config, results_file, neuron_idx):
             new_xarray = np.vstack([xarray1_flat, xarray2])
             print(f"new_xarray {new_xarray} new x shape: {new_xarray.shape}")
 
-# #SAMPLE Y
+            #SAMPLE Y
             yarray1 = np.array(results_dict_pickle['sample_y'][neuron_idx]['initial'][-1])
             yarray1_flat = yarray1.reshape(-1)
             yarray2 = np.array(results_dict_pickle['sample_y'][neuron_idx]['selected']).reshape(-1)

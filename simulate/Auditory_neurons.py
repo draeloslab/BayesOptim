@@ -131,7 +131,7 @@ class Auditory_neurons(Neuron):
             #print(f"self.peaks: neuron {n} {self.peaks[n]}")
 
 
-    def sample(self, x, addnoise = False, normalize = False):
+    def sample(self, x, add_noise = False, normalize = False):
             """
             Compute DoG response for all neurons at stimulus x (array-like, shape [d]).
             Returns shape [N].
@@ -143,9 +143,7 @@ class Auditory_neurons(Neuron):
                 sb1, sb2 = self.rv2[n]
                 inhibition = self.inhibition_sum(x, sb1, sb2)
                 self.z[n] = self.rv1[n].pdf(x) - inhibition
-
-                #if self.type == "indep_noise":
-                if addnoise:
+                if add_noise:
                 # Choose your alpha (noise scaling)
                     alpha = 0.5   # You can tune this
                     noise_std = np.abs(self.z[n]) * alpha  # Scale noise with response magnitude

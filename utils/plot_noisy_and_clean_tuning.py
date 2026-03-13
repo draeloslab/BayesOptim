@@ -18,7 +18,7 @@ def plot_noisy_and_clean_tuning(config, neuron_idx):
     import matplotlib.pyplot as plt
     noisy_grid = []
     for xi in SimPop.x_star:  # xi is an input stimulus point (shape [d])
-        z = SimPop.sample(xi, addnoise = True)      # z is a vector of responses: shape [N]
+        z = SimPop.sample(xi, add_noise = True)      # z is a vector of responses: shape [N]
         noisy_grid.append(z[neuron_idx])    # get the response of neuron 1 (or whichever neuron you want)
 
     # Convert to numpy array
@@ -33,7 +33,7 @@ def plot_noisy_and_clean_tuning(config, neuron_idx):
     fig, axs = plt.subplots(1, 2, figsize=(12, 5))
     fig.suptitle(f"Neuron {neuron_idx}")
 
-    # Analytic response
+    # Noise_free response
     c0 = axs[0].contourf(no_noise_grid, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
                                 origin='lower', cmap='viridis')
     axs[0].set_title("Noise-Free DoG Response Neuron")
