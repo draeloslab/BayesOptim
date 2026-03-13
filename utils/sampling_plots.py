@@ -61,14 +61,14 @@ def plot_tuningcurves_sampled_auditory(config):
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
                 sampled_peak = config.x_star[np.argmax(Z[n])]
                 Z_reshaped = Z[n].reshape(X.shape).T
-                print(f"Z_reshaped neuron {n}: {Z_reshaped}; Z_reshaped neuron: {Z_reshaped.shape}; Z shape is: {Z.shape}")
+                #print(f"Z_reshaped neuron {n}: {Z_reshaped}; Z_reshaped neuron: {Z_reshaped.shape}; Z shape is: {Z.shape}")
                 plt.contourf(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
-                            origin='lower', cmap='viridis', aspect='auto')
+                            origin='lower', cmap='viridis')
                 plt.plot(config.SimPop.peaks[n][0], config.SimPop.peaks[n][1], 'ro',
                         label = f"true peak: ({config.SimPop.peaks[n][0]:.2f}, {config.SimPop.peaks[n][1]:.2f})")
                 plt.plot(sampled_peak[dim1], sampled_peak[dim2], 'bo',
                         label = f"sampled peak: ({sampled_peak[dim1]:.2f}, {sampled_peak[dim2]:.2f})")
-                # if f_peak is not None:
+                #if f_peak is not None:
                 #     plt.plot(f_peak[dim1], f_peak[dim2], 'yo', 
                 #             label = f"GP offline peak: ({f_peak[dim1]:.2f}, {f_peak[dim2]:.2f})")
                 plt.legend()

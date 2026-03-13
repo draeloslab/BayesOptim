@@ -60,7 +60,7 @@ def grid_sampling(c, print_flag=False):
             t+=1
             gsPr_list.append(gscn/N) # num of pred neurons / overall neurons for random sampling
 
-    
+            np.random.seed(40)
             random_indices = np.random.choice(len(xs_copy), size=1, replace=False)
             pl= xs_copy[random_indices,] # the loc of peak
             pl=pl.ravel()

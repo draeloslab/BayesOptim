@@ -7,13 +7,15 @@ from datetime import datetime
 from model.bayesopt_sampling import bayesopt_sampling 
 from model.random_sampling import random_sampling
 from model.grid_sample import grid_sampling
-from model.optimizer import calc_offline_fit 
 from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse, plot_stopping_criteria
-from simulate.sampling_plots import plot_tuningcurves_sampled_auditory, sampling_for_plots_auditory
+from utils.sampling_plots import plot_tuningcurves_sampled_auditory, sampling_for_plots_auditory
 from utils.save_results import save_results
 import matplotlib.pyplot as plt
-from simulate.stop_functions_plots import stop_functions_plots
-from simulate.pareto_plot import gather_hyperparameters, plot_pareto_from_data
+from utils.plot_noisy_and_clean_tuning import plot_noisy_and_clean_tuning
+from model.optimizer import calc_offline_fit 
+from utils.plotting_offline_and_online_fits import gathering_data, plotting_offline_and_online_fits
+from utils.stop_functions_plots import stop_functions_plots
+from utils.pareto_plot import gather_hyperparameters, plot_pareto_from_data
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
 if len(sys.argv) > 1:
@@ -82,7 +84,9 @@ while True:
                 N = config.N
                 SimPop = config.SimPop
                 plot_tuningcurves(N, SimPop, config) #Ground truth plot
-                plot_tuningcurves_sampled_auditory(config) #Sampling Sanity check plot (samples the whole stimulus space)
+                plot_tuningcurves_sampled(1, config, f_peak = None) #Make sure you enter a specific neuron index as first argument
+                #if parameters['Neurons']['SimPop'] == 'auditory':
+                    #plot_tuningcurves_sampled_auditory(config) #Sampling Sanity check plot (samples the whole stimulus space)
                 break
 
             else:
@@ -153,31 +157,14 @@ else:  # running single kernel
 
 if parameters['General']['save_results'] == True:
     config = Config(file=param_file_path)
-    online_grid2, new_xarray, new_yarray = save_results(config, param_file_path=param_file_path, results_dict=results_dict)
+    results_file = save_results(config, param_file_path=param_file_path, results_dict=results_dict)
+    plot_noisy_and_clean_tuning(config, 1) #last argument is neuron index
+    online_grid2, new_xarray, new_yarray = gathering_data(config, results_file,1) #last argument is the neuron index 
+    f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
+    plotting_offline_and_online_fits(config, f, online_grid2, 1) #last argument is the neuron index
     stop_functions_plots(section_key='stopping_allN')
     run_data = gather_hyperparameters(output_dir='output', section_key='Pr_list')
     plot_pareto_from_data(run_data)
-
-
-for dim1 in range(len(config.exs)):
-        for dim2 in range(dim1+1, len(config.exs)):
-            x_range = config.exs[dim1]
-            y_range = config.exs[dim2]
-            X, Y = np.meshgrid(x_range, y_range, indexing='ij')
-#f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
-# print(f"f: {f}")
-
-# plt.figure()
-# plt.imshow(f.reshape(X.shape).T, cmap='viridis', origin='lower')
-# plt.title('Offline GP Fit')
-# plt.colorbar(label='GP Mean')
-# plt.show()
-
-# print(f"offline {f.reshape(6,5)}")
-# print(f"online {online_grid}")
-# np.allclose(f.reshape(X.shape).T, right_grid, atol = 1e-3)
-
-    
 
 
 

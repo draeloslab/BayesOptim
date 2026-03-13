@@ -183,9 +183,8 @@ def plot_tuningcurves(N, SimPop, config):
                     sideband2 = stats.multivariate_normal(mean=mean_exc + offset, cov= cov_inh)
     
                     Z_inh = SimPop.inhibition_sum(pos, sideband1, sideband2)
-                    #Z_dog = Z_exc - Z_inh
                     Z_dog = np.array(SimPop.responses[n]).reshape(X.shape).T
-                    print(f"Z_dog: {Z_dog}")
+                    #print(f"Z_dog: {Z_dog}")
 
                     fig, axs = plt.subplots(1, 3, figsize=(12, 5))
                     
@@ -394,8 +393,10 @@ def plot_tuningcurves_sampled(neuron_num, config, f_peak = None):
                 y_range = config.exs[dim2]
                 X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
                 Z_reshaped = Z.reshape(X.shape).T
-                plt.imshow(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
-                            origin='lower', cmap='viridis', aspect='auto')
+                # plt.imshow(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
+                #             origin='lower', cmap='viridis', aspect='auto')
+                plt.contourf(Z_reshaped, extent=(x_range[0] - 0.5, x_range[-1] + 0.5, y_range[0]-0.5, y_range[-1]+0.5),
+                            origin='lower', cmap='viridis')
                 plt.plot(config.SimPop.peaks[neuron_num][0], config.SimPop.peaks[neuron_num][1], 'ro',
                         label = f"true peak: ({config.SimPop.peaks[neuron_num][0]:.2f}, {config.SimPop.peaks[neuron_num][1]:.2f})")
                 plt.plot(sampled_peak[dim1], sampled_peak[dim2], 'bo',
@@ -445,7 +446,6 @@ def sampling_for_plots(neuron_num, config):
                     # print(resp)
                     Z[i*len(config.exs[dim2])+ j] = resp # just sampling
             # print(f"sampled neuron 1: {sampled_points}")
-            # print(f"Z_gridsample: {Z}")
             # # sample for nD array; discarded
             # Z = np.zeros((len(exs[dim2]), len(exs[dim1])))
             # for i in range(Z.shape[dim1]):  # 10

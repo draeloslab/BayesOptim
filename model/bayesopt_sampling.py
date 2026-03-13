@@ -1,7 +1,6 @@
 import time
 import numpy as np
 from model.optimizer import Optimizer  # all of them
-import matplotlib.pyplot as plt
 
 
 # @profile
@@ -71,6 +70,8 @@ def bayesopt_sampling(c, print_flag=False):
     optimizer_class = Optimizer #globals().get(optimizer_class) # got rid of the dynamic instantiation
     print("You're using these kernels:", optimizer_kernel, ". The stopping crit is:", optimizer_stopping_crit)
     print("Gamma: {}; Nu: {}; var: {}; eta: {}; matern nu (if any) {}".format(c.gamma, c.nu, c.var, c.eta, c.matern_nu))
+    # true_initial_X = np.array(c.X0).copy()
+    # true_initial_y = np.array(c.y0).copy()
     while not flag_all_neurons: 
         
         ## Set up which neuron is going to be optimized, or if we are done. 
@@ -148,7 +149,7 @@ def bayesopt_sampling(c, print_flag=False):
             # print(n_optim, xt_1, y[n_optim])
             optim.update_GP(xt_1, y[n_optim])
             pl = optim.x_star[np.argmax(optim.f)]
-            #print(f"pl: {pl}")
+            print(f"pl: {pl}")
             dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
             count_list.append(count)
             EI, PI = optim.stopping()
@@ -207,6 +208,14 @@ def bayesopt_sampling(c, print_flag=False):
                 'initial': [initial_y],
                 'selected': selected_y
             }
+            # sample_x[n_optim] = {
+            #     'initial': [true_initial_X],           # was [initial_X]
+            #     'selected': selected_X
+            # }
+            # sample_y[n_optim] = {
+            #     'initial': [true_initial_y[:, n_optim]],  # was [initial_y]
+            #     'selected': selected_y
+            # }
 
         test_time_neuron[n_optim] = test_time
         # neuron_time[n_optim] = end_neuron - start_neuron    
@@ -238,24 +247,5 @@ def bayesopt_sampling(c, print_flag=False):
         "test_time_neuron": test_time_neuron,
     }
     
-    # print(f"BayesOpt Prlist: {results_dict['Pr_list']}")
-    # print(f"BayesOpt Prlist_correct_solution: {results_dict['Pr_list_correct_solution']}")
-    print(f"stopping all length: {len(results_dict['stopping_allN'])}")
-    for block in results_dict['stopping_allN']:
-        print("block:", block)
-        for pair in block:
-            print("pair:", pair, "type:", type(pair))
-    # stopping_vals = results_dict['stopping_allN']
-    # #EI_vals = []
-    # for n in range(c.N):
-    #     #print(f"stopping vals {stopping_vals[n]}")
-    #     EI_vals = [x[0] for x in stopping_vals[n]]
-    #     # print(f"EI vals {EI_vals}")
-    #     plt.plot(EI_vals, label= f'Neuron {n+1}')
-    # plt.xlabel('Test Step')
-    # plt.ylabel('Expected Improvement')
-    # plt.title(f'EI vs Optimization Step for gamma= {c.gamma}, stop={optimizer_stopping_crit}')
-    # plt.legend()
-    # plt.show()
     return results_dict
  
