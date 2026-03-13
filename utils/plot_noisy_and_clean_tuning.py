@@ -1,13 +1,26 @@
 import matplotlib.pylab as plt
-import scipy.stats as stats
-import numpy as np
-import os
-import yaml
-import pickle
-from datetime import datetime as dt 
 import numpy as np
 
 def plot_noisy_and_clean_tuning(config, neuron_idx): 
+    """
+    Plot side-by-side noise-free (analytic/precomputed) and noisy DoG tuning surfaces for one neuron.
+
+    This function visualizes, for a given neuron, (1) the noise-free Difference-of-Gaussians (DoG)
+    response surface that was precomputed during tuning curve generation (stored in
+    ``config.SimPop.responses``), and (2) a noisy DoG response surface obtained by evaluating the
+    neuron's response at every stimulus point with add_noise=True in the sample method of Auditory neurons
+    The function also marks the peak for each surface:
+    Parameters
+    ----------
+    config : object
+    neuron_idx : int
+        Index of the neuron to plot.
+
+    Returns
+    -------
+    None
+        Displays a matplotlib figure with two subplots.
+    """
     SimPop = config.SimPop
     for dim1 in range(len(config.exs)):
             for dim2 in range(dim1+1, len(config.exs)):

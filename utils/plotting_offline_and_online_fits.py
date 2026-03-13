@@ -3,6 +3,47 @@ import numpy as np
 import pickle
 
 def gathering_data(config, results_file, neuron_idx): 
+    """
+    Load saved Bayesian optimization results and assemble data needed for plotting offline and online GP fits
+
+    This helper function reads a pickled results dictionary and returns:
+      1) The final “online” GP mean surface for a given neuron (reshaped to the 2D stimulus grid),
+      2) The full set of sampled X locations used to train the GP (initial design + sequentially selected),
+      3) The corresponding observed Y values (initial responses + sequentially selected responses).
+
+    Parameters
+    ----------
+    config : object
+        Configuration object providing stimulus axes:
+          - config.exs : list of 1D arrays
+              Stimulus axis values for each dimension. This function currently assumes you want to
+              reshape to a 2D grid using one (dim1, dim2) pair from config.exs.
+
+    results_file : From Bayesopt results_dict
+        
+          - 'f_all'[neuron_idx][-1] : array-like
+              Final GP mean evaluated on the full candidate set 
+          - 'sample_x'[neuron_idx]['initial'] : list 
+          - 'sample_x'[neuron_idx]['selected'] : list
+          - 'sample_y'[neuron_idx]['initial'] : list
+          - 'sample_y'[neuron_idx]['selected'] : list
+
+    neuron_idx : int
+        Index of the neuron whose results should be extracted.
+
+    Returns
+    -------
+    online_grid2 : numpy.ndarray
+        The final online GP mean surface reshaped to the 2D plotting grid, shape (n_x, n_y),
+        where n_x = len(config.exs[dim1]) and n_y = len(config.exs[dim2]).
+    new_xarray : numpy.ndarray
+        All sampled X locations used for GP training, stacked as:
+        [initial_X; selected_X], shape (n_samples_total, d).
+
+    new_yarray : numpy.ndarray
+        All sampled Y observations aligned with new_xarray, stacked as:
+        [initial_y; selected_y], shape (n_samples_total,).
+    """
     with open(results_file, 'rb') as f:
             results_dict_pickle = pickle.load(f)
             online_grid1 = np.array(results_dict_pickle['f_all'][neuron_idx][-1])
@@ -38,6 +79,33 @@ def gathering_data(config, results_file, neuron_idx):
     
 
 def plotting_offline_and_online_fits(config, f, online_grid2, neuron_idx):
+    """
+    Plot side-by-side offline vs online GP mean surfaces for a given neuron, and mark their peaks.
+
+    The “offline” surface is provided as a flat vector `f` (GP mean over the full candidate set),
+    which is reshaped to the 2D stimulus grid. The “online” surface is provided as `online_grid2`
+    already reshaped to the same 2D grid. The function plots both with contourf and overlays the
+    argmax (“peak”) location in stimulus coordinates.
+
+    Parameters
+    ----------
+    config : object
+        Configuration object providing stimulus axes and stimulus coordinates:
+    f : array-like
+        Offline GP mean evaluated over the full candidate set 
+
+    online_grid2 : numpy.ndarray
+        Online GP mean surface already reshaped to the 2D plotting grid, shape (n_x, n_y).
+
+    neuron_idx : int
+        Neuron index (used for labeling/titles).
+
+    Returns
+    -------
+    None
+        Displays a matplotlib figure with two subplots and prints the reshaped arrays.
+        Also computes (but does not return) an np.allclose comparison of offline vs online grids.
+    """
     for dim1 in range(len(config.exs)):
             for dim2 in range(dim1+1, len(config.exs)):
                 x_range = config.exs[dim1]
