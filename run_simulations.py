@@ -82,7 +82,7 @@ while True:
                 results_dict = bayesopt_sampling(config, print_flag=True)
                 N = config.N
                 SimPop = config.SimPop
-                plot_tuningcurves(N, SimPop, config) #Ground truth plot
+                plot_tuningcurves(3, SimPop, config) #Ground truth plot
                 plot_tuningcurves_sampled(1, config, f_peak = None) #Make sure you enter a specific neuron index as first argument
                 #if parameters['Neurons']['SimPop'] == 'auditory':
                 break

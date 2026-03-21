@@ -119,7 +119,7 @@ def stop_functions_plots(section_key='stopping_allN'):
     
     plt.xlabel('Optimization Step')
     plt.ylabel('Expected Improvement (EI)')
-    plt.title('EI Trajectory for All Neurons and Nu Settings')
+    plt.title('EI Trajectory for All Neurons and Gamma Settings')
 
     # Add both legends
     plt.legend(neuron_lines + gamma_lines, neuron_labels + gamma_labels, loc='best', fontsize='small')
