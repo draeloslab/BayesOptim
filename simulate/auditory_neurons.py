@@ -5,7 +5,7 @@ from sklearn.metrics import mean_squared_error
 from simulate.neuron import Neuron
 import matplotlib.pylab as plt
 
-class Auditory_neurons(Neuron):
+class AuditoryNeurons(Neuron):
     ''' 
     Class to simulate O-shaped (Difference of Gaussian) neural tuning curves and responses to auditory stimuli (e.g. frequency and level)
     This models neurons with center excitation and lateral inhibition, such as those found in auditory pathways.

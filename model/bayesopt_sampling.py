@@ -224,16 +224,7 @@ def bayesopt_sampling(c, print_flag=False):
     Pr_list.append(cn/ c.N)
     Pr_list_correct_solution.append(correct_neurons_real/ c.N)
     mse_final = [neuron_mse[-1] for neuron_mse in mse_allN]
-
-    exs = [np.arange(6), np.arange(5)]
-    for dim1 in range(len(exs)):
-        for dim2 in range(dim1+1, len(exs)):
-            x_range = exs[dim1]
-            y_range = exs[dim2]
-            X, Y = np.meshgrid(x_range, y_range, indexing = 'ij')
-            #Z_reshaped = Z.reshape(X.shape)#.T
     
-
     results_dict = {
         "Pr_list": Pr_list,
         "Pr_list_correct_solution": Pr_list_correct_solution,

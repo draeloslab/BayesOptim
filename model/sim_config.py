@@ -4,7 +4,7 @@ import numpy as np
 import pandas as pd
 from simulate.sim_neurons import SimNeurons
 from simulate.pseudo_neurons import PseudoNeurons
-from simulate.Auditory_neurons import Auditory_neurons
+from simulate.auditory_neurons import AuditoryNeurons
 
 class Config():
     def __init__(self, file):
@@ -100,7 +100,7 @@ class Config():
 
         #Auditory Difference of Gaussian-simulated neurons
         if parameters['Neurons']['SimPop'] == 'auditory':
-            SimPop = Auditory_neurons(self.N, self.d, tol = np.array([l[1]-l[0] for l in exs]))
+            SimPop = AuditoryNeurons(self.N, self.d, tol = np.array([l[1]-l[0] for l in exs]))
             SimPop.set_tuning_x(exs, ranges)
             SimPop.gen_tuning_curves(type='indep', constraint=None)
 

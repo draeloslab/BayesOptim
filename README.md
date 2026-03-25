@@ -2,9 +2,9 @@
 Bayesian optimization during live neuroscience experiments
 
 
-# Choosing type of run: `simulation` or `live`
+# Choosing type of run: `simulation` or `improv`
 ## Simulation
-Use the `sim_config.py` script. This is the neuron simulation case. Here, we can run an optimization model on purely simulated neuronal data, experimental data, or experimental data with some simulated tuning curves. Changing the `Neurons` --> `SimPop` parameter (gaussian, bio, or pseudo, respectively) in the YAML file will let you choose which type of data to work with. 
+Use the `sim_config.py` script. This is the neuron simulation case. Here, we can run an optimization model on purely simulated neuronal data, experimental data, or experimental data with some simulated tuning curves. Changing the `Neurons` --> `SimPop` parameter (gaussian, bio, pseudo or auditory, respectively; see the different neuron class types in the `simulate` folder) in the YAML file will let you choose which type of data to work with. 
 
 ## Improv
 As we also interface with **[improv](https://github.com/project-improv/improv)**, running the ~improv~ method will use the `improv_config.py` script. This will be a test case, where the config output parameters will be printed for verification purposes. 
@@ -44,4 +44,20 @@ The code also currently has one evaluation method for the manual and BoTorch onl
 python run_simulations.py eval
 ```
 Simply leave the second keyword blank to run normally.
+
+
+## Plotting
+
+-  `plot.plot_correct_prediction`: plots probability of making correct predictions
+-  `plot.plot_peak_value`: plots true peak value and predicted peak value 
+-  `plot.plot_mse`: plots MSE values of n neurons
+-  `plot.plot_run_time`: plots run time for tests for a specific neuron
+-  `plot.plot_stopping_criteria`: plots Expected Improvment (EI) optimization value (stopping value) across number of tests for all neurons
+-  `utils.pareto_plot.py`: plots a Pareto scatter plot of accuracy vs. iterations for experiment runs, annotated with hyperparameters
+- `utils.plot_noisy_and_clean_tuning.py `: plots side-by-side noise free (analytic/precomputed) and noisy Difference of Gaussian (DoG) tuning surfaces for one neuron (for AuditoryNeurons, only)
+- `utils.plotting_offline_and_online.py`: plot side-by-side offline and online GP mean surfaces for a given neuron, and mark their peaks
+- `utils.stop_functions_plots.py`: generates EItrajectory plots for all neurons and hyperparameter settings across multiple experiment runs
+
+To see more plotting functions (e.g. ploting neural tuning curves), check out `plot.py`
+
 
