@@ -6,9 +6,15 @@ from datetime import datetime
 
 from model.bayesopt_sampling import bayesopt_sampling 
 from model.random_sampling import random_sampling
-from model.optimizer import calc_offline_fit 
-from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves_eval, plot_acqf, plot_mse
+from model.grid_sample import grid_sampling
+from plot import plot_correct_prediction, plot_peak_value, plot_run_time, plot_tuningcurves, plot_tuningcurves_eval, plot_tuningcurves_sampled, plot_acqf, plot_mse, plot_stopping_criteria
 from utils.save_results import save_results
+import matplotlib.pyplot as plt
+from utils.plot_noisy_and_clean_tuning import plot_noisy_and_clean_tuning
+from model.optimizer import calc_offline_fit 
+from utils.plotting_offline_and_online_fits import gathering_data, plotting_offline_and_online_fits
+from utils.stop_functions_plots import stop_functions_plots
+from utils.pareto_plot import gather_hyperparameters, plot_pareto_from_data
 
 # Choosing what type of algorithm to run (simulation, improv, etc.)
 if len(sys.argv) > 1:
@@ -67,13 +73,18 @@ while True:
                 exs = config.exs
                 SimPop = config.SimPop
                 plot_tuningcurves_eval(N, exs, SimPop, candidates=results_dict['loc_list'], method='simulate')
+
                 # plot_stopping(stopping_allN)
                 # plot_acqf(acq_list)
                 break
 
             elif eval_method is None or eval_method == ' ':
                 results_dict = bayesopt_sampling(config, print_flag=True)
-
+                N = config.N
+                SimPop = config.SimPop
+                plot_tuningcurves(3, SimPop, config) #Ground truth plot
+                plot_tuningcurves_sampled(1, config, f_peak = None) #Make sure you enter a specific neuron index as first argument
+                #if parameters['Neurons']['SimPop'] == 'auditory':
                 break
 
             else:
@@ -89,6 +100,7 @@ while True:
             
             # Extract results
             Pr_list_all = []
+            Pr_list_correct_solution_all = []
             mse_final_all = []
             loc_list_all = []
             max_allN_all = []
@@ -100,6 +112,7 @@ while True:
                 results_dict = result
                 # any quicker way to do stuff?
                 Pr_list_all.append(results_dict['Pr_list'])
+                Pr_list_correct_solution_all.append(results_dict['Pr_list_correct_solution'])
                 mse_final_all.append(results_dict['mse_final'])
                 loc_list_all.append(results_dict['loc_list'])
                 max_allN_all.append(results_dict['max_allN'])
@@ -114,6 +127,7 @@ while True:
                 break
 
             elif eval_method is None or eval_method == ' ':
+                plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_crit = config.stopping_crit, EI_or_PI = "EI")
                 break
 
             else:
@@ -124,23 +138,32 @@ while True:
         config.algorithm = None
 
 rsPr_list = random_sampling(config, print_flag=True)
+gsPr_list = grid_sampling(config, print_flag=True)
+
+plot_stopping_criteria(stopping_allN =results_dict['stopping_allN'], stopping_crit = float(config.optimizers['optim_1']['stopping_crit']), EI_or_PI = "EI")
 
 if len(optimizers) > 1 and config.method == "parallel":  # not sure about this
     for i in range(len(optimizers)):
-        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], rsPr_list=rsPr_list, optimizer_name=optimizers[i])
+        plot_correct_prediction(N=config.N, Pr_list=Pr_list_all[i], Pr_list_correct_solution = Pr_list_correct_solution_all[i], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[i])
         plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=mse_final_all[i], loc_list=loc_list_all[i], SimPop=config.SimPop)
         plot_mse(mse_final=mse_final_all[i])
 else:  # running single kernel
-    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], rsPr_list=rsPr_list, optimizer_name=optimizers[0])
+    plot_correct_prediction(N=config.N, Pr_list=results_dict['Pr_list'], Pr_list_correct_solution = results_dict['Pr_list_correct_solution'], rsPr_list=rsPr_list, gsPr_list = gsPr_list, optimizer_name=optimizers[0])
     plot_peak_value(x1=config.exs[0], x2=config.exs[1], mse_final=results_dict['mse_final'], loc_list=results_dict['loc_list'], SimPop=config.SimPop, optimizer_name=optimizers[0])
     plot_mse(mse_final=results_dict['mse_final'], optimizer_name=optimizers[0])
     plot_run_time(test_time_neuron=results_dict['test_time_neuron'], average=True)
 
 if parameters['General']['save_results'] == True:
-    save_results(param_file_path=param_file_path, results_dict=results_dict)
-    
-
-    
+    config = Config(file=param_file_path)
+    results_file = save_results(config, param_file_path=param_file_path, results_dict=results_dict)
+    if parameters['Neurons']['SimPop'] == 'auditory' and parameters['Neurons']['add_noise'] == True:
+        plot_noisy_and_clean_tuning(config, 1) #last argument is neuron index
+    online_grid2, new_xarray, new_yarray = gathering_data(config, results_file, 1) #last argument is the neuron index 
+    f, sigma = calc_offline_fit(new_xarray, new_yarray, config, config.kernels)
+    plotting_offline_and_online_fits(config, f, online_grid2, 1) #last argument is the neuron index
+    stop_functions_plots(section_key='stopping_allN')
+    run_data = gather_hyperparameters(output_dir='output', section_key='Pr_list')
+    plot_pareto_from_data(run_data)
 
 
 

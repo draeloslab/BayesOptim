@@ -13,6 +13,7 @@ class Optimizer():
         self.nu = c.nu
         self.eta = c.eta
         self.x_star = c.x_star
+        self.mse_cutoff = c.mse_cutoff
 
         self.d = self.x_star.shape[1] # d dimensions
 
