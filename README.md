@@ -7,7 +7,7 @@ Bayesian optimization during live neuroscience experiments
 Use the `sim_config.py` script. This is the neuron simulation case. Here, we can run an optimization model on purely simulated neuronal data, experimental data, or experimental data with some simulated tuning curves. Changing the `Neurons` --> `SimPop` parameter (gaussian, bio, pseudo or auditory, respectively; see the different neuron class types in the `simulate` folder) in the YAML file will let you choose which type of data to work with. 
 
 ## Improv
-As we also interface with **[improv](https://github.com/project-improv/improv)**, running the _improv_ method will use the `improv_config.py` script. This will be a test case in which the config output parameters will be printed for verification. 
+We also interface with **[improv](https://github.com/project-improv/improv)** to run live adaptive experiments. Running the _improv_ method will use the `improv_config.py` script and will simply print out the config output parameters for testing and verification. 
 
 <!-- <a id="preproc"></a>
 ## Preprocessing
