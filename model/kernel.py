@@ -47,7 +47,7 @@ def kernel_rbf_periodic(x, x_j, gamma, period):
     dist = np.abs(x[:, None] - x_j[None, :])
     p = float(period)
     ls = 0.5 / float(gamma)
-    return np.exp(-2 * np.sin((dist * np.pi) / p)**2 / (ls**2)) * np.exp(-gamma * dist**2)
+    return np.exp(-2 * np.sin((dist * np.pi) / p)**2 / (ls)) * np.exp(-gamma * dist**2) # gamma = 1/(2*ls**2)
 
 def kernel_linear_dim(x, x_j):
     """Linear kernel for one dim: outer product."""
