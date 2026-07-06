@@ -1,0 +1,51 @@
+General:
+  seed: 1234 #7 #42
+  init_T: 8 #7  # 4
+  max_tests: 15 #40 #15 #20  # 100
+  algorithm: 'sim' # options: sim, improv, muscle (FUTURE)
+  method: 'online' # options: online, offline
+  data_folder: "/home/paulawu/Codes/improv/demos/live/output_062526_ds6" #output_060326_ds3" #output_022626_ds5" #output_082925_ds5" #output_082225_ds5" #output_061825_sim_ds071525"
+  lab: "burgess"
+  save_results: True
+
+Neurons:
+  N: 20 #234 #100 #5 #500 #200  # 100
+  tc_type:  'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
+  constraint: 'linear' #'peak_distance' #'linear' # BUG: also "simulate"??
+  SimPop: 'pseudo' # options: gaussian, pseudo, auditory (only used during simulation runs)
+  add_noise: None #0.03 #0.08 #0.02 # or None
+  noise_type: 'poisson' #"uniform"  # or "poisson"
+
+Stimuli:
+  d: 5 #3
+  x1_range: 8
+  x2_range: 6  # recently changed to 8654 as of 042525, previously using 8564
+  x3_range: 5
+  x4_range: 4
+  x5_range: 3
+  pre_stim_window: 0
+  stim_extension: 50  # double check how we integrate response?
+
+Optimizer:
+  mse_cutoff: .5
+  gamma: 1 #0.4 #1
+  var: 0.5 #5e-2
+  nu: 0.5 #1e-1
+  eta: 5e-2  #5e-2
+  optim_1:
+    kernel: ['rbf_periodic', 'rbf', 'rbf', 'rbf', 'rbf'] #['rbf', 'rbf', 'rbf', 'rbf', 'rbf'] #['rbf', 'rbf', 'rbf']  
+    stopping_crit: 3e-4 #4.5e-4 #3e-4 #4e-4 #0.000376 #4e-4 #0.1068 #0.107 #4e-4 #3e-4 #0.02, 0.08, 0.37 #0.01, 0.1
+    periodic_p: 8 #2
+  # optim_2:
+  #   kernel: ['matern', 'matern', 'matern', 'matern', 'matern'] #['rbf', 'rbf', 'rbf']  
+  #   stopping_crit: 4e-4 #0.000376 #4e-4 #0.1068 #0.107 #4e-4 #3e-4 #0.02, 0.08, 0.37 #0.01, 0.1
+  #   matern_nu: 2.5
+  #   # periodic_p: 2
+  # optim_2: 
+  #   kernel: ['linear', 'rbf'] 
+  #   stopping_crit: 0.02 #0.08, 0.01, 0.4
+  # optim_3:
+  #   kernel: ['matern','matern']
+  #   stopping_crit: 0.01  # 0.005
+  #   matern_nu: 0.5
+  
