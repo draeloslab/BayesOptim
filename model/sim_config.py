@@ -27,6 +27,9 @@ class Config():
         self.d = parameters['Stimuli']['d']     # number of dimensions in tuning curve
         if 'fr' in parameters['Neurons'].keys():
             fr = parameters['Neurons']['fr']
+        s = parameters['Neurons']['add_noise']
+        self.add_noise = None if str(s).lower() == 'none' else s
+        self.noise_type = parameters['Neurons']['noise_type']  # 'uniform' or 'poisson'
 
        ## Stimulus dimensions defined
         exs = []
@@ -89,7 +92,7 @@ class Config():
 
         ## Gaussian-simulated neurons
         if parameters['Neurons']['SimPop'] == 'gaussian':
-            SimPop = SimNeurons(self.N, self.d, tol = 5*np.array([l[1]-l[0] for l in exs]))
+            SimPop = SimNeurons(self.N, self.d, tol = 5*np.array([l[1]-l[0] for l in exs]), add_noise=self.add_noise, noise_type=self.noise_type)
             SimPop.set_tuning_x(exs, ranges)
 
             if 'tc_type' in parameters['Neurons'].keys():
