@@ -1,0 +1,58 @@
+General:
+  seed: 42 #7 #1234 #42
+  init_T: 8  # 4
+  max_tests: 15  # 100
+  algorithm: manual # BUG: options are manual, botorch
+  method: online    # BUG: options are online, offline
+  data_folder: './data/'
+  lab: "burgess"
+
+Neurons:
+  N: 500 # 100
+  tc_type:  'indep' # 'linear_uvn' # 'indep' # 'double_peaks' # how neuron population data are generated
+  constraint: 'linear' #'peak_distance' #'linear' # BUG: also "simulate"??
+  SimPop: 'gaussian' # gaussian OR pseudo
+  fr: 7.5  #frame rate 
+  add_noise: 1 #0.03 #0.08 #0.02 # or None
+  noise_type: 'poisson' #"uniform"  # or "poisson"
+
+Stimuli:
+  d: 5
+  x1_range: 8
+  x2_range: 6
+  x3_range: 5
+  x4_range: 4
+  x5_range: 3 
+  pre_stim_window: 0
+  stim_extension: 50  # double check how we integrate response?
+
+Optimizer:
+  mse_cutoff: .5
+  gamma: 0.1 #0.4 #0.03 #0.5 #0.001 #0.5 #0.1 #0.2 #1
+  var: 0.5 #0.5 #1 #4.736090061418528e-6 #0.5 #0.01 #0.5 #5e-2
+  nu: 0.5 #1e-1
+  eta: 0.08 #0.08 #5e-2 #1e-1 #5e-2
+  optim_1:
+    kernel: ['rbf', 'rbf', 'rbf', 'rbf' ,'rbf']  
+    stopping_crit: 2e-4 #1e-20 #1e-10 #6.34e-3 #3e-4 #8e-5 #3e-4 #3e-4 #0.02, 0.08, 0.37 #0.01, 0.1
+  # optim_2: 
+  #   kernel: ['rbf', 'rbf'] 
+  #   stopping_crit: 3e-4 #0.08, 0.01, 0.4
+  # optim_3:
+  #   kernel: ['matern','matern']
+  #   stopping_crit: 0.01  # 0.005
+  #   matern_nu: 0.5
+  
+# Evaluation:
+  # t: 0
+  # cn: 0
+  # nt: 0
+  # Pr_list: []
+  # mse_allN: []
+  # mse_final: []
+  # wrong: 0
+  # wrong_list: []
+  # stopping_allN: []
+  # max_allN: []
+  # n_X0: []
+  # loc_list: []
