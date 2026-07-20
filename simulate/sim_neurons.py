@@ -8,7 +8,7 @@ class SimNeurons(Neuron):
     ''' 
     Class to simulate neural tuning curves and responses to visual stimuli
     '''
-    def __init__(self, N, d, tol=1):
+    def __init__(self, N, d, tol=1, add_noise=None, noise_type='uniform'):
         ''' 
         Initialize the SimNeurons instance
 
@@ -20,6 +20,10 @@ class SimNeurons(Neuron):
         '''    
         super().__init__(N, d, tol)
         self.y = []
+        self.rng = np.random.default_rng(42)  #???
+        self.add_noise = add_noise # this is for noise controls; makes it easier to turn off noise when needed
+        self.noise_type = noise_type   # this is for different noise types
+        print("Noise of sampling is set to:", self.add_noise, "with type:", self.noise_type)
 
     def gen_tuning_curves(self, type='indep', constraint=None):
         ''' 
@@ -194,18 +198,13 @@ class SimNeurons(Neuron):
         ----------
         z                : simulated response given sample stimulus
         '''
-    #-------note: given we can actually only sample of a small portion of the sample space.
-    #-------Input: x sample point =>generate response z
-        ### a local seed with local RNG
-        seed = hash(tuple(x_sample)) % (2**32)
-        local_rng = np.random.default_rng(seed)
-        ###
+
         z = np.zeros(self.N)
-        for i in range(self.N):#i,y in enumerate(self.y):
+        for i in range(self.N):
             if isinstance(self.y[i], tuple):  # check if it's indep or (linear_uvn or double_peaks)
                 if all(hasattr(comp, 'pdf') for comp in self.y[i]):  # double_peaks; need to uncomment this
                     peak1, peak2 = self.y[i]
-                    z_1 = peak1.pdf(x_sample)  # .pdf(pos)
+                    z_1 = peak1.pdf(x_sample)
                     z_2 = peak2.pdf(x_sample)
                     z[i] = 20 * np.maximum(z_1, z_2)
                 else:  # linear_uvn
@@ -213,29 +212,36 @@ class SimNeurons(Neuron):
                     z_linear = (a * x_sample[0] + b)  #/20  # not sure what does the 20 means
                     z_uvn = np.prod([dist.pdf(x_sample[1:]) for dist in y_uvn])  # times all other dim
                     z[i] = z_linear * z_uvn  # do we need to *20 here?
-            else:  # indep
-                z[i] = 20 * self.y[i].pdf(x_sample) # need to uncomment this
+            else: # indep
+                z[i] = 20 * self.y[i].pdf(x_sample) 
             
             # adding noise 
             # TODO: should we distinguish bewteen sample noise and intrinsic noise
-            if self.type == "indep_noise":
-                # # z[i] += np.random.poisson(lambda = )  # poisson noise is quite disturbing
-                alpha = 0.5  # change this
-                noise_std = z[i] * alpha
-                z[i] += local_rng.normal(0, noise_std)  # comment this if rng is not working
-                # z[i] += np.random.normal(0, noise_std)
+            if self.type == "indep_noise": 
+                # 'More Noisy': Increased alpha and added a baseline floor
+                alpha = 0.8  # Increased from 0.5 (Multiplicative noise)
+                baseline = 0.5 # Added baseline (so 0-response neurons still have noise)
+                
+                noise_std = (z[i] * alpha) + baseline
+                # Use self.rng instead of local_rng
+                z[i] += self.rng.normal(0, noise_std) 
                 if z[i] < 0:
                     z[i] = 0
 
-            else:
-                z[i] += local_rng.random()*0.1/np.max(self.scale) 
-                #----noise--gaussian
-                # z[i] = np.random.poisson(fr)
-        
-        # # to account for negative values, should be with respect to each neuron, not wrt every neurons
-        # if np.min(z) < 0:
-        #     z = z + abs(np.min(z))
-            
+            else:  # indep
+                # some noise
+                if self.add_noise is not None:
+                    if self.noise_type == 'uniform':
+                        z[i] += self.rng.random()*self.add_noise/np.max(self.scale)
+                    elif self.noise_type == 'poisson': 
+                        z[i] = max(0, z[i]) # Ensure non-negative before poisson noise
+                        local_std = np.sqrt(z[i]) * self.add_noise
+                        noise = self.rng.normal(0, local_std)
+                        z[i] += noise
+                else: 
+                    z[i] += 0 #no added noise
+                if z[i] < 0:  # calibration for the negative response
+                    z[i] = 0
         if normalize:
             self.record_response(x_sample, z, normalize=True)
 
