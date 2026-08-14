@@ -209,7 +209,7 @@ def calc_offline_fit(X, y, c, kernels):
         neuron_len = y.shape[0]
         print(neuron_len)
     f = np.empty((neuron_len, c.x_star.shape[0])) # the number of neurons
-    sigma = np.empty((neuron_len, c.x_star.shape[0], c.x_star.shape[0]))
+    sigma = np.empty((neuron_len, c.x_star.shape[0])) #np.empty((neuron_len, c.x_star.shape[0], c.x_star.shape[0]))
     if not is_X_object:
         if not is_y_multi:
             assert X.shape[0] == y.shape[0] and X.shape[1] == c.d, \
@@ -239,10 +239,10 @@ def calc_offline_fit(X, y, c, kernels):
         # Compute GP parameters
         A = np.linalg.inv(K_t + c.eta**2 * np.eye(T))     # TO DO - look at pinv 
         f[neuron] = k_star.T @ A @ y_neuron                    # predicted means
-        sigma[neuron] = c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star    # covariance matrix
+        sigma[neuron] = np.diagonal(c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star) #c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star #np.diagonal(c.var * np.eye(c.x_star.shape[0]) - k_star.T @ A @ k_star)    # covariance matrix
         t = T
 
-    return f, sigma
+    return f, sigma  # should just return the diagonal of sigma
 
 # # online fits
 # TODO: we should change it to single neuron basis
