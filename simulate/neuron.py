@@ -10,7 +10,7 @@ class Neuron(Response):
         super().__init__(N, d)
         self.tol = tol
     
-    def set_tuning_x(self, x):
+    def set_tuning_x(self, x, ranges):
         ''' 
         Scaling parameters for simulating tuning curves
         
@@ -19,6 +19,7 @@ class Neuron(Response):
         x (list) : list of dimension ranges
         '''
         self.x = x
+        self.ranges = ranges
         self.scale = np.array([l[-1] - l[0] for l in self.x])
         self.min = np.array([l[0] for l in self.x])
         self.max = np.array([l[-1] for l in self.x])

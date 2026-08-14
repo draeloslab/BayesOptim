@@ -17,7 +17,7 @@ class Config():
         ## Optimizers
         self.n = parameters['Optimizer']['n']  # number of optimizers #NOTE: need for improv 
         self.d = parameters['Stimuli']['d']     # number of dimensions in tuning curve
-
+        # self.mse_cutoff = parameters['Optimizer']['mse_cutoff']
         ## Stimulus dimensions defined
         exs = []
         ranges = []

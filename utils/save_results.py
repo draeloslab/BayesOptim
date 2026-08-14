@@ -3,8 +3,9 @@ import os
 import yaml
 import pickle
 from datetime import datetime as dt 
+import numpy as np
 
-def save_results(param_file_path, results_dict):
+def save_results(config, param_file_path, results_dict):
 
     ## first check if there is an output folder, if not create one
     if not os.path.exists('output'):
@@ -29,3 +30,6 @@ def save_results(param_file_path, results_dict):
     with open(results_file, 'wb') as f:
         pickle.dump(results_dict, f)
     print(f'Saved results dictionary as pickle file in {output_folder}')
+
+    return results_file
+    

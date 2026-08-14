@@ -262,7 +262,11 @@ class SimNeurons(Neuron):
         # dists = dists_1 if np.array_equal(selected_peak, peak1) else dists_2
         # mse = mean_squared_error(peaks, selected_peak)  # double-peaks only
         # count = np.count_nonzero(dists < self.tol) #--count dist within tolerance
+        print(dists_ls)
+        print(mse_ls)
+        print(count_ls)
         return dists_ls, count_ls, mse_ls #dists, count, mse #
+
     
     def get_prior(self):
         return  self.peaks, self.covs
