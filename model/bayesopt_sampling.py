@@ -4,7 +4,7 @@ from model.optimizer import Optimizer  # all of them
 
 
 # @profile
-def bayesopt_sampling(c, print_flag=False):
+def bayesopt_sampling(c, print_flag=False, sigma_save = True):
     ''' Bayesian optimization
 
     For each neuron, a Gaussian Process (GP) is initialized and then an iterative process of updating the GP in order to minimize
@@ -62,18 +62,15 @@ def bayesopt_sampling(c, print_flag=False):
     rerun_flag = False          # If True, there are neurons we need to return to and try again
     torun_list = []             # The list that stores the neurons'optim(index) to re-run 
     optim_n = list(c.optimizers.keys())
-    # if c.algorithm != "parallel":
-    #     assert len(optim_n) == 1, "Not running BayesOpt in parallel, only accept one optimizer; \
-    #         comment out optimizers not being used"
-    optim_n = optim_n[0]
-        # optimizer_class = 'Optimizer'#optimizer_class[0]
+    if c.algorithm != "paralell":
+        assert len(optim_n) == 1, "Not running BayesOpt in parallel, only accept one optimizer"
+        optim_n = optim_n[0]
     optimizer_kernel = c.optimizers[optim_n]['kernels']
     optimizer_stopping_crit = float(c.optimizers[optim_n]['stopping_crit'])
     optimizer_class = Optimizer #globals().get(optimizer_class) # got rid of the dynamic instantiation
     print("You're using these kernels:", optimizer_kernel, ". The stopping crit is:", optimizer_stopping_crit)
     print("Gamma: {}; Nu: {}; var: {}; eta: {}; matern nu (if any) {}".format(c.gamma, c.nu, c.var, c.eta, c.matern_nu))
-    # true_initial_X = np.array(c.X0).copy()
-    # true_initial_y = np.array(c.y0).copy()
+    accurate_neurons = set()  # add a set to keep track of accurately predicted neurons
     while not flag_all_neurons: 
         
         ## Set up which neuron is going to be optimized, or if we are done. 
@@ -127,7 +124,6 @@ def bayesopt_sampling(c, print_flag=False):
         stopping_list = []
         max_list = []
         mse_list = []
-        count_list = []
         f_list = []
         sigma_list = []
         test_time = []
@@ -151,24 +147,27 @@ def bayesopt_sampling(c, print_flag=False):
             # print(n_optim, xt_1, y[n_optim])
             optim.update_GP(xt_1, y[n_optim])
             pl = optim.x_star[np.argmax(optim.f)]
-            #print(f"pl: {pl}")
             dists, count, mse = c.SimPop.verify_sln(pl, n_optim)
-            count_list.append(count)
             EI, PI = optim.stopping()
             mse_list.append(mse)
             #print(f"mse_list: {mse_list}")
             stopping_list.append(optim.stopping())
             max_list.append(pl)
             f_list.append(optim.f)
-            sigma_list.append(optim.sigma)
-            if count > (c.d-1) and not correct_solution:
-                correct_solution = True
-            if EI < optimizer_stopping_crit and correct_solution and not done_optimizing:
+            if sigma_save:
+                sigma_list.append(np.diagonal(optim.sigma))  # this is now the diagonal of sigma matrix
+            if mse < 1.45 and (n_optim not in accurate_neurons) and not done_optimizing:
+                accurate_neurons.add(n_optim)
+                correct_neurons_real = len(accurate_neurons)
+            # if count > (c.d-1) and not correct_solution:
+            #     correct_solution = True
+            if EI < optimizer_stopping_crit and not done_optimizing:
                 done_optimizing = True
-                cn += 1
+                if mse < 1.45:
+                    cn += 1
                 runt_list[n_optim] += nt
-            if correct_solution:
-                correct_neurons_real += 1
+            # if correct_solution:
+            #     correct_neurons_real += 1
                 break
 
             if cnt == c.max_tests-1:
@@ -187,7 +186,8 @@ def bayesopt_sampling(c, print_flag=False):
                 loc_list[n_optim] = max_list[-1]
                 stopping_allN[n_optim].extend(stopping_list)
                 f_all[n_optim].extend(f_list)
-                sigma_all[n_optim].extend(sigma_list)
+                if sigma_save:
+                    sigma_all[n_optim].extend(sigma_list)
                 sample_x[n_optim]['initial'].extend([initial_X])
                 sample_y[n_optim]['initial'].extend([initial_y])
                 sample_x[n_optim]['selected'].extend(selected_X)
@@ -201,7 +201,8 @@ def bayesopt_sampling(c, print_flag=False):
             loc_list[n_optim] = max_list[-1]
             stopping_allN[n_optim] = stopping_list
             f_all[n_optim] = f_list
-            sigma_all[n_optim] = sigma_list
+            if sigma_save:
+                sigma_all[n_optim] = sigma_list
             sample_x[n_optim] = {
                 'initial': [initial_X],
                 'selected': selected_X
@@ -210,35 +211,37 @@ def bayesopt_sampling(c, print_flag=False):
                 'initial': [initial_y],
                 'selected': selected_y
             }
-            # sample_x[n_optim] = {
-            #     'initial': [true_initial_X],           # was [initial_X]
-            #     'selected': selected_X
-            # }
-            # sample_y[n_optim] = {
-            #     'initial': [true_initial_y[:, n_optim]],  # was [initial_y]
-            #     'selected': selected_y
-            # }
 
-        test_time_neuron[n_optim] = test_time
-        # neuron_time[n_optim] = end_neuron - start_neuron    
+        test_time_neuron[n_optim] = test_time   
     Pr_list.append(cn/ c.N)
     Pr_list_correct_solution.append(correct_neurons_real/ c.N)
     mse_final = [neuron_mse[-1] for neuron_mse in mse_allN]
-    
-    results_dict = {
-        "Pr_list": Pr_list,
-        "Pr_list_correct_solution": Pr_list_correct_solution,
-        "mse_final": mse_final,
-        "loc_list": loc_list,
-        "max_allN": max_allN,
-        "stopping_allN": stopping_allN,
-        "runt_list": runt_list,
-        "f_all": f_all,
-        "sigma_all": sigma_all,
-        "sample_x": sample_x,
-        "sample_y": sample_y,
-        "test_time_neuron": test_time_neuron,
-    }
-    
+    if sigma_save:
+        results_dict = {
+            "Pr_list": Pr_list,
+            "Accuracy_list": Pr_list_correct_solution,
+            "mse_final": mse_final,
+            "loc_list": loc_list,
+            "max_allN": max_allN,
+            "stopping_allN": stopping_allN,
+            "runt_list": runt_list,
+            "f_all": f_all,
+            "sigma_all": sigma_all,
+            "sample_x": sample_x,
+            "sample_y": sample_y,
+            "test_time_neuron": test_time_neuron}
+    else:
+        results_dict = {
+            "Pr_list": Pr_list,
+            "Accuracy_list": Pr_list_correct_solution,
+            "mse_final": mse_final,
+            "loc_list": loc_list,
+            "max_allN": max_allN,
+            "stopping_allN": stopping_allN,
+            "runt_list": runt_list,
+            "f_all": f_all,
+            "sample_x": sample_x,
+            "sample_y": sample_y,
+            "test_time_neuron": test_time_neuron}
     return results_dict
  
