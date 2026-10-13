@@ -84,17 +84,20 @@ class Optimizer():
         #self.change = change
         self.update_obs(x, y)
         #(x,y) -->(xt1,yt1)
-        
+        self.update_obs(x, y)
+
         ## Can't do internally due to out of memory / invalid array errors from numpy
-        self.K_t, self.u, self.phi, f_upd, sigma_upd = update_GP_ext(self.X_t, self.x_t1, self.A, self.y, self.y_t1, self.k_star, self.kvv, self.c, self.kernels)#update_GP_ext(self.X_t, self.x_t1, self.A, self.x_star, self.eta, self.y, self.y_t1, self.k_star, self.variance, self.gamma,self.kvv, self.kernels, self.matern_nu)
+        self.K_t, self.u, self.phi, f_upd, kuk = update_GP_ext(self.X_t, self.x_t1, self.A, self.y, self.y_t1, self.k_star, self.kvv, self.c, self.kernels)#update_GP_ext(self.X_t, self.x_t1, self.A, self.x_star, self.eta, self.y, self.y_t1, self.k_star, self.variance, self.gamma,self.kvv, self.kernels, self.matern_nu)
 
         # unsolved ###########why results from two eq below (1)/(2) differ from results from the code , though they are mathmatically identical?  
         #sigtmp = -self.sigma + sigma_upd (1)
-        #self.f = self.f + f_upd (2)  
-
+        # self.f += np.asarray(f_upd).reshape(-1) # (2)  
+        self.f = self.f + f_upd                             # eq (32)
+        self.sigma -= self.phi * (kuk @ kuk.T)
+        
         self.iterate_vars()
-        self.f = self.k_star.T @ self.A @ self.y
-        self.sigma = self.kvv - self.k_star.T @ self.A @ self.k_star# (V,V)
+        # self.f = self.k_star.T @ self.A @ self.y
+        # self.sigma = self.kvv - self.k_star.T @ self.A @ self.k_star# (V,V)
 
 
     #@profile
@@ -188,7 +191,7 @@ def update_GP_ext(X_t, x_t1, A, y, y_t1, k_star, kvv, c, kernels):#update_GP_ext
     # can't @ here,@ only dim-matached 2D matrix-->2D matrix/1D arr-->1D array;
 
     dsig = kvv - phi * kuk.dot(kuk.T)#(160, 160)-(160,1) row-wise subtrction
-    return k_t, u, phi, df, dsig
+    return k_t, u, phi, df, kuk
 
 # TODO: make this more applicable to other optimizer, maybe eliminate matern_nu?
 # or maybe change the input argument to config?
